@@ -2,6 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { alice, aliceSession, bobSession } from '../fixtures/members';
 import { aliceAchievements } from '../fixtures/achievements';
 
+// Extract achievement ID for use in tests (we know fixtures have data)
+const testAchievementId = aliceAchievements[0]!.id;
+
 // Mock environment variables
 vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://test.supabase.co');
 vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'test-service-role-key');
@@ -68,7 +71,7 @@ describe('POST /api/reactions', () => {
     mockGetSession.mockResolvedValueOnce(null);
 
     const request = createRequest({
-      achievementId: aliceAchievements[0].id,
+      achievementId: testAchievementId,
       emoji: '🔥',
     });
 
@@ -97,7 +100,7 @@ describe('POST /api/reactions', () => {
     mockGetSession.mockResolvedValueOnce(aliceSession);
 
     const request = createRequest({
-      achievementId: aliceAchievements[0].id,
+      achievementId: testAchievementId,
     });
 
     const response = await POST(request);
@@ -111,7 +114,7 @@ describe('POST /api/reactions', () => {
     mockGetSession.mockResolvedValueOnce(aliceSession);
 
     const request = createRequest({
-      achievementId: aliceAchievements[0].id,
+      achievementId: testAchievementId,
       emoji: '😀', // Not in allowed list
     });
 
@@ -126,7 +129,7 @@ describe('POST /api/reactions', () => {
     mockGetSession.mockResolvedValueOnce(bobSession);
 
     const request = createRequest({
-      achievementId: aliceAchievements[0].id,
+      achievementId: testAchievementId,
       emoji: '🔥',
     });
 
@@ -146,7 +149,7 @@ describe('POST /api/reactions', () => {
       mockUpsert.mockResolvedValueOnce({ error: null });
 
       const request = createRequest({
-        achievementId: aliceAchievements[0].id,
+        achievementId: testAchievementId,
         emoji,
       });
 
@@ -160,7 +163,7 @@ describe('POST /api/reactions', () => {
     mockUpsert.mockResolvedValueOnce({ error: new Error('Database error') });
 
     const request = createRequest({
-      achievementId: aliceAchievements[0].id,
+      achievementId: testAchievementId,
       emoji: '🔥',
     });
 
@@ -211,7 +214,7 @@ describe('DELETE /api/reactions', () => {
 
     const request = createRequest(
       {
-        achievementId: aliceAchievements[0].id,
+        achievementId: testAchievementId,
         emoji: '🔥',
       },
       'DELETE'
@@ -239,7 +242,7 @@ describe('DELETE /api/reactions', () => {
   it('returns 400 when missing emoji', async () => {
     mockGetSession.mockResolvedValueOnce(aliceSession);
 
-    const request = createRequest({ achievementId: aliceAchievements[0].id }, 'DELETE');
+    const request = createRequest({ achievementId: testAchievementId }, 'DELETE');
 
     const response = await DELETE(request);
     const data = await response.json();
@@ -253,7 +256,7 @@ describe('DELETE /api/reactions', () => {
 
     const request = createRequest(
       {
-        achievementId: aliceAchievements[0].id,
+        achievementId: testAchievementId,
         emoji: '🔥',
       },
       'DELETE'
@@ -273,7 +276,7 @@ describe('DELETE /api/reactions', () => {
 
     const request = createRequest(
       {
-        achievementId: aliceAchievements[0].id,
+        achievementId: testAchievementId,
         emoji: '🔥',
       },
       'DELETE'
@@ -292,7 +295,7 @@ describe('DELETE /api/reactions', () => {
 
     const request = createRequest(
       {
-        achievementId: aliceAchievements[0].id,
+        achievementId: testAchievementId,
         emoji: '🔥',
       },
       'DELETE'
