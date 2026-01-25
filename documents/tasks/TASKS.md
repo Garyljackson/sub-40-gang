@@ -56,53 +56,53 @@
 
 ### 2.1 Supabase Setup
 
-- [ ] **Initialize Supabase CLI**
+- [x] **Initialize Supabase CLI**
   - Run `pnpm supabase init` to create supabase folder
   - Configure `supabase/config.toml` for local development
 
-- [ ] **Add database scripts to package.json**
+- [x] **Add database scripts to package.json**
   - Add db:start, db:stop, db:reset scripts
   - Add db:diff, db:push, db:types scripts
 
 ### 2.2 Database Schema
 
-- [ ] **Create initial migration for core tables**
+- [x] **Create initial migration for core tables**
   - Create `members` table with Strava OAuth fields
   - Create `achievements` table with milestone tracking
   - Create `reactions` table for emoji reactions
   - Create `webhook_queue` table for async processing
   - Create `processed_activities` table for last synced run
 
-- [ ] **Create indexes and constraints**
+- [x] **Create indexes and constraints**
   - Add performance indexes on frequently queried columns
   - Add unique constraints for business rules
   - Add foreign key relationships
 
-- [ ] **Set up Row Level Security (RLS)**
+- [x] **Set up Row Level Security (RLS)**
   - Enable RLS on all tables
   - Create policies for read access
   - Create policies for write access
 
-- [ ] **Create updated_at trigger**
+- [x] **Create updated_at trigger**
   - Create trigger function for automatic timestamp updates
   - Apply trigger to members table
 
 ### 2.3 Type Generation
 
-- [ ] **Generate TypeScript types from schema**
+- [x] **Generate TypeScript types from schema**
   - Run db:types to generate `lib/database.types.ts`
   - Verify types are correctly generated
 
 ### 2.4 Supabase Client
 
-- [ ] **Create Supabase client utilities**
+- [x] **Create Supabase client utilities**
   - Create `lib/supabase.ts` for browser client
   - Create server-side client with service role key
   - Add proper TypeScript typing
 
 ### 2.5 Database Seeding
 
-- [ ] **Create seed data for development**
+- [x] **Create seed data for development**
   - Add test members to `supabase/seed.sql`
   - Add sample achievements for leaderboard testing
   - Add sample reactions for UI testing
@@ -453,11 +453,11 @@
 | Phase                        | Tasks  | Completed |
 | ---------------------------- | ------ | --------- |
 | 1. Project Setup             | 8      | 8         |
-| 2. Database & Infrastructure | 9      | 0         |
+| 2. Database & Infrastructure | 9      | 9         |
 | 3. Strava Integration        | 14     | 0         |
 | 4. Core Features             | 10     | 0         |
 | 5. Social Features           | 4      | 0         |
 | 6. PWA & Polish              | 9      | 0         |
 | 7. Testing                   | 11     | 3         |
 | 8. Deployment                | 8      | 0         |
-| **Total**                    | **73** | **11**    |
+| **Total**                    | **73** | **20**    |
