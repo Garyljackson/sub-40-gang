@@ -202,29 +202,29 @@
 
 ### 4.1 Activity Feed
 
-- [ ] **Create feed API endpoint**
+- [x] **Create feed API endpoint**
   - Create `app/api/feed/route.ts`
   - Return paginated achievements with member data
   - Include reactions for each achievement
 
-- [ ] **Create feed page**
-  - Create `app/(app)/page.tsx` as feed page
+- [x] **Create feed page**
+  - Create `app/(app)/feed/page.tsx` as feed page
   - Implement infinite scroll or pagination
   - Display achievement cards with member info
 
-- [ ] **Create achievement card component**
+- [x] **Create achievement card component**
   - Show member photo, name, milestone
   - Display achieved time and timestamp
   - Include reaction buttons
 
 ### 4.2 Leaderboard
 
-- [ ] **Create leaderboard API endpoint**
+- [x] **Create leaderboard API endpoint**
   - Create `app/api/leaderboard/route.ts`
   - Aggregate achievements by member for current season
   - Sort by total milestones unlocked
 
-- [ ] **Create leaderboard page**
+- [x] **Create leaderboard page**
   - Create `app/(app)/leaderboard/page.tsx`
   - Display ranked list of members
   - Show milestone progress icons
@@ -232,29 +232,29 @@
 
 ### 4.3 Profile
 
-- [ ] **Create profile API endpoint**
+- [x] **Create profile API endpoint**
   - Create `app/api/profile/route.ts`
   - Return current user's milestone status
   - Include achievement details
 
-- [ ] **Create recent activity API endpoint**
+- [x] **Create recent activity API endpoint**
   - Create `app/api/profile/recent-activity/route.ts`
   - Return most recent synced run
   - Include pace and milestones unlocked
 
-- [ ] **Create profile page**
+- [x] **Create profile page**
   - Create `app/(app)/profile/page.tsx`
   - Display milestone grid (locked/unlocked)
   - Show last synced run card
 
 ### 4.4 Navigation
 
-- [ ] **Create app layout with navigation**
+- [x] **Create app layout with navigation**
   - Create `app/(app)/layout.tsx`
   - Add bottom navigation bar
   - Include Feed, Leaderboard, Profile links
 
-- [ ] **Create login page**
+- [x] **Create login page**
   - Create `app/page.tsx` for unauthenticated users
   - Add "Sign in with Strava" button
   - Show app branding and description
@@ -265,12 +265,12 @@
 
 ### 5.1 Reactions
 
-- [ ] **Create reactions API endpoints**
+- [x] **Create reactions API endpoints**
   - Create POST `app/api/reactions/route.ts` for adding
   - Create DELETE `app/api/reactions/[id]/route.ts` for removing
   - Validate emoji against allowed set
 
-- [ ] **Create reaction component**
+- [x] **Create reaction component**
   - Display reaction buttons (four emojis)
   - Show reaction counts
   - Toggle own reaction on click
@@ -455,9 +455,9 @@
 | 1. Project Setup             | 8      | 8         |
 | 2. Database & Infrastructure | 9      | 9         |
 | 3. Strava Integration        | 14     | 14        |
-| 4. Core Features             | 10     | 0         |
-| 5. Social Features           | 4      | 0         |
+| 4. Core Features             | 10     | 10        |
+| 5. Social Features           | 4      | 2         |
 | 6. PWA & Polish              | 9      | 0         |
 | 7. Testing                   | 11     | 3         |
 | 8. Deployment                | 8      | 0         |
-| **Total**                    | **73** | **34**    |
+| **Total**                    | **73** | **46**    |

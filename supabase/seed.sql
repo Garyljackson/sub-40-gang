@@ -1,11 +1,12 @@
 -- supabase/seed.sql
 
 -- Test members (no real Strava tokens needed for UI testing)
+-- profile_photo_url is NULL - Avatar component shows initials as fallback
 INSERT INTO members (id, strava_athlete_id, name, profile_photo_url, strava_access_token, strava_refresh_token, token_expires_at, joined_at)
 VALUES
-  ('11111111-1111-1111-1111-111111111111', '10001', 'Alice Runner', 'https://via.placeholder.com/150', 'fake-token', 'fake-refresh', NOW() + INTERVAL '1 day', '2026-01-01'),
-  ('22222222-2222-2222-2222-222222222222', '10002', 'Bob Jogger', 'https://via.placeholder.com/150', 'fake-token', 'fake-refresh', NOW() + INTERVAL '1 day', '2026-01-05'),
-  ('33333333-3333-3333-3333-333333333333', '10003', 'Charlie Sprinter', 'https://via.placeholder.com/150', 'fake-token', 'fake-refresh', NOW() + INTERVAL '1 day', '2026-01-10');
+  ('11111111-1111-1111-1111-111111111111', '10001', 'Alice Runner', NULL, 'fake-token', 'fake-refresh', NOW() + INTERVAL '1 day', '2026-01-01'),
+  ('22222222-2222-2222-2222-222222222222', '10002', 'Bob Jogger', NULL, 'fake-token', 'fake-refresh', NOW() + INTERVAL '1 day', '2026-01-05'),
+  ('33333333-3333-3333-3333-333333333333', '10003', 'Charlie Sprinter', NULL, 'fake-token', 'fake-refresh', NOW() + INTERVAL '1 day', '2026-01-10');
 
 -- Test achievements (various milestones for leaderboard testing)
 INSERT INTO achievements (member_id, milestone, season, strava_activity_id, achieved_at, distance, time_seconds)
