@@ -403,46 +403,46 @@
 
 ### 8.1 Vercel Configuration
 
-- [ ] **Create Vercel configuration**
+- [x] **Create Vercel configuration**
   - Create `vercel.json` with cron jobs
   - Configure build and install commands
   - Set region to Sydney (syd1)
 
-- [ ] **Configure environment variables**
+- [x] **Configure environment variables**
   - Add all required env vars in Vercel dashboard
   - Set up production Supabase credentials
   - Configure Strava production credentials
 
 ### 8.2 CI/CD
 
-- [ ] **Create GitHub Actions workflow**
+- [x] **Create GitHub Actions workflow**
   - Create `.github/workflows/ci.yml`
   - Run lint, typecheck, and tests on PR
   - Upload test coverage to Codecov
 
 ### 8.3 Production Setup
 
-- [ ] **Set up production Supabase project**
+- [x] **Set up production Supabase project**
   - Create Supabase project
   - Link local project to remote
   - Push migrations to production
 
-- [ ] **Register Strava webhook**
+- [x] **Register Strava webhook**
   - Create webhook subscription in Strava API
   - Verify webhook is receiving events
 
-- [ ] **Configure security headers**
-  - Add security headers in next.config.js
+- [x] **Configure security headers**
+  - Add security headers in next.config.ts
   - Verify HTTPS enforcement
 
 ### 8.4 Monitoring
 
-- [ ] **Create health check endpoint**
+- [x] **Create health check endpoint**
   - Create `app/api/health/route.ts`
   - Check database connectivity
   - Return health status
 
-- [ ] **Set up Vercel Analytics**
+- [x] **Set up Vercel Analytics**
   - Add Analytics component to layout
   - Verify analytics are being collected
 
@@ -459,5 +459,5 @@
 | 5. Social Features           | 4      | 4         |
 | 6. PWA & Polish              | 9      | 9         |
 | 7. Testing                   | 11     | 11        |
-| 8. Deployment                | 8      | 0         |
-| **Total**                    | **73** | **65**    |
+| 8. Deployment                | 8      | 8         |
+| **Total**                    | **73** | **73**    |

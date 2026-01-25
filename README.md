@@ -73,7 +73,138 @@ Visit http://localhost:3000/api/auth/strava to initiate Strava authentication.
 
 ### Webhooks (Production)
 
-Strava webhooks require a publicly accessible URL. For local development, use a tunnel like ngrok. For production on Vercel, register the webhook subscription via the Strava API after deployment.
+Strava webhooks require a publicly accessible URL. For local development, use a tunnel like ngrok.
+
+For production on Vercel, register the webhook subscription after deployment:
+
+```bash
+curl -X POST https://www.strava.com/api/v3/push_subscriptions \
+  -d client_id=YOUR_STRAVA_CLIENT_ID \
+  -d client_secret=YOUR_STRAVA_CLIENT_SECRET \
+  -d callback_url=https://your-domain.vercel.app/api/webhooks/strava \
+  -d verify_token=YOUR_STRAVA_VERIFY_TOKEN
+```
+
+**Important:**
+
+- Use the same `STRAVA_VERIFY_TOKEN` value you set in Vercel environment variables
+- The `callback_url` domain must match your Strava app's "Authorization Callback Domain"
+- A successful response returns `{"id": 12345}` (your subscription ID)
+
+To view existing subscriptions:
+
+```bash
+curl "https://www.strava.com/api/v3/push_subscriptions?client_id=YOUR_CLIENT_ID&client_secret=YOUR_CLIENT_SECRET"
+```
+
+To delete a subscription:
+
+```bash
+curl -X DELETE "https://www.strava.com/api/v3/push_subscriptions/SUBSCRIPTION_ID?client_id=YOUR_CLIENT_ID&client_secret=YOUR_CLIENT_SECRET"
+```
+
+## Production Deployment (Vercel)
+
+Follow these steps in order to deploy to production.
+
+### Step 1: Create Production Supabase Project
+
+1. Go to [supabase.com](https://supabase.com) and create a new project
+2. Choose a name, set a strong database password, and select a region (e.g., Sydney for Australia)
+3. Wait for the project to finish provisioning
+4. Go to **Project Settings** → **General** and copy the **Reference ID**
+5. Link and push migrations:
+   ```bash
+   pnpm supabase link --project-ref YOUR_PROJECT_REF
+   pnpm db:push
+   ```
+   If the first push fails with a UUID error, reset and retry:
+   ```bash
+   pnpm supabase db reset --linked
+   ```
+6. Get your credentials from **Project Settings** → **API**:
+   - **Project URL** → `NEXT_PUBLIC_SUPABASE_URL`
+   - **anon public** key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - **service_role** key → `SUPABASE_SERVICE_ROLE_KEY`
+
+### Step 2: Update Strava App Settings
+
+Go to https://www.strava.com/settings/api and update:
+
+- **Authorization Callback Domain**: `your-domain.vercel.app` (no `https://` prefix)
+
+Note your **Client ID** and **Client Secret** for the next step.
+
+### Step 3: Generate Secrets
+
+Generate random strings for the required secrets:
+
+```bash
+echo "STRAVA_VERIFY_TOKEN: $(openssl rand -hex 32)"
+echo "JWT_SECRET: $(openssl rand -hex 32)"
+echo "CRON_SECRET: $(openssl rand -hex 32)"
+```
+
+**Save the `STRAVA_VERIFY_TOKEN` value** - you'll need it again when registering the webhook.
+
+### Step 4: Configure Vercel Environment Variables
+
+In Vercel Dashboard → Your Project → **Settings** → **Environment Variables**, add:
+
+| Variable                        | Value                                                     |
+| ------------------------------- | --------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | From Supabase (Step 1)                                    |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | From Supabase (Step 1)                                    |
+| `SUPABASE_SERVICE_ROLE_KEY`     | From Supabase (Step 1)                                    |
+| `STRAVA_CLIENT_ID`              | From Strava API settings                                  |
+| `STRAVA_CLIENT_SECRET`          | From Strava API settings                                  |
+| `STRAVA_VERIFY_TOKEN`           | Generated secret (Step 3)                                 |
+| `STRAVA_REDIRECT_URI`           | `https://your-domain.vercel.app/api/auth/strava/callback` |
+| `JWT_SECRET`                    | Generated secret (Step 3)                                 |
+| `CRON_SECRET`                   | Generated secret (Step 3)                                 |
+| `NEXT_PUBLIC_APP_URL`           | `https://your-domain.vercel.app`                          |
+
+### Step 5: Deploy to Vercel
+
+Push your code to trigger a deployment, or manually deploy from the Vercel dashboard.
+
+Verify the deployment by visiting:
+
+- `https://your-domain.vercel.app` - Should show the login page
+- `https://your-domain.vercel.app/api/health` - Should return `{"status":"healthy",...}`
+
+### Step 6: Register Strava Webhook
+
+After deployment is live, register the webhook subscription:
+
+```bash
+curl -X POST https://www.strava.com/api/v3/push_subscriptions \
+  -d client_id=YOUR_STRAVA_CLIENT_ID \
+  -d client_secret=YOUR_STRAVA_CLIENT_SECRET \
+  -d callback_url=https://your-domain.vercel.app/api/webhooks/strava \
+  -d verify_token=YOUR_STRAVA_VERIFY_TOKEN
+```
+
+A successful response returns `{"id": 12345}` (your subscription ID).
+
+**Troubleshooting:**
+
+- If you get a callback verification error, ensure `STRAVA_VERIFY_TOKEN` in Vercel matches the `verify_token` in the curl command
+- The callback domain must match your Strava app's "Authorization Callback Domain"
+
+### Webhook Management
+
+View existing subscriptions:
+
+```bash
+curl "https://www.strava.com/api/v3/push_subscriptions?client_id=YOUR_CLIENT_ID&client_secret=YOUR_CLIENT_SECRET"
+```
+
+Delete a subscription:
+
+```bash
+curl -X DELETE "https://www.strava.com/api/v3/push_subscriptions/SUBSCRIPTION_ID?client_id=YOUR_CLIENT_ID&client_secret=YOUR_CLIENT_SECRET"
+```
 
 ## Testing
 

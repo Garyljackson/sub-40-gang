@@ -1,5 +1,4 @@
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- Note: gen_random_uuid() is built into PostgreSQL 13+ (no extension needed)
 
 -- Milestone enum
 CREATE TYPE milestone_type AS ENUM ('1km', '2km', '5km', '7.5km', '10km');
@@ -9,7 +8,7 @@ CREATE TYPE queue_status AS ENUM ('pending', 'processing', 'completed', 'failed'
 
 -- Members table
 CREATE TABLE members (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     strava_athlete_id VARCHAR(255) UNIQUE NOT NULL,
     name VARCHAR(255) NOT NULL,
     profile_photo_url TEXT,
@@ -23,7 +22,7 @@ CREATE TABLE members (
 
 -- Achievements table
 CREATE TABLE achievements (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     member_id UUID NOT NULL REFERENCES members(id) ON DELETE CASCADE,
     milestone milestone_type NOT NULL,
     season INTEGER NOT NULL,
@@ -39,7 +38,7 @@ CREATE TABLE achievements (
 
 -- Reactions table
 CREATE TABLE reactions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     achievement_id UUID NOT NULL REFERENCES achievements(id) ON DELETE CASCADE,
     member_id UUID NOT NULL REFERENCES members(id) ON DELETE CASCADE,
     emoji VARCHAR(10) NOT NULL,
@@ -51,7 +50,7 @@ CREATE TABLE reactions (
 
 -- Webhook queue table (for async processing)
 CREATE TABLE webhook_queue (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     strava_activity_id VARCHAR(255) NOT NULL,
     strava_athlete_id VARCHAR(255) NOT NULL,
     event_type VARCHAR(50) NOT NULL,
@@ -68,7 +67,7 @@ CREATE TABLE webhook_queue (
 
 -- Processed activities table (for "last synced run" visibility)
 CREATE TABLE processed_activities (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     member_id UUID NOT NULL REFERENCES members(id) ON DELETE CASCADE,
     strava_activity_id VARCHAR(255) NOT NULL,
     activity_name VARCHAR(255) NOT NULL,
