@@ -292,46 +292,46 @@
 
 ### 6.1 PWA Setup
 
-- [ ] **Create web app manifest**
+- [x] **Create web app manifest**
   - Create `public/manifest.json`
   - Configure app name, icons, colors
   - Set display mode to standalone
 
-- [ ] **Create service worker**
+- [x] **Create service worker**
   - Create `public/sw.js`
   - Cache static assets
   - Implement network-first strategy
 
-- [ ] **Create offline page**
+- [x] **Create offline page**
   - Create `app/offline/page.tsx`
   - Display friendly offline message
 
-- [ ] **Register service worker**
+- [x] **Register service worker**
   - Add registration in app layout
   - Handle updates gracefully
 
 ### 6.2 Install Prompt
 
-- [ ] **Create install prompt hook**
+- [x] **Create install prompt hook**
   - Create `hooks/use-install-prompt.ts`
   - Capture beforeinstallprompt event
   - Provide install function
 
-- [ ] **Add install prompt UI**
+- [x] **Add install prompt UI**
   - Show prompt on first visit (after onboarding)
   - Include "Add to Home Screen" messaging
 
 ### 6.3 UI Polish
 
-- [ ] **Add loading states**
+- [x] **Add loading states**
   - Create skeleton components for feed
   - Add loading spinners for actions
 
-- [ ] **Add error handling UI**
+- [x] **Add error handling UI**
   - Create error boundary components
   - Display user-friendly error messages
 
-- [ ] **Add celebration animations**
+- [x] **Add celebration animations**
   - Add confetti or animation for milestone unlocks
   - Make achievement cards visually celebratory
 
@@ -457,7 +457,7 @@
 | 3. Strava Integration        | 14     | 14        |
 | 4. Core Features             | 10     | 10        |
 | 5. Social Features           | 4      | 4         |
-| 6. PWA & Polish              | 9      | 0         |
+| 6. PWA & Polish              | 9      | 9         |
 | 7. Testing                   | 11     | 3         |
 | 8. Deployment                | 8      | 0         |
-| **Total**                    | **73** | **48**    |
+| **Total**                    | **73** | **57**    |
