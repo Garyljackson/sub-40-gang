@@ -46,6 +46,14 @@ export const MILESTONES: Record<MilestoneKey, Milestone> = {
 
 export const MILESTONE_KEYS: MilestoneKey[] = ['1km', '2km', '5km', '7.5km', '10km'];
 
+export const MILESTONE_EMOJIS: Record<MilestoneKey, string> = {
+  '1km': '🥉',
+  '2km': '🥈',
+  '5km': '🥇',
+  '7.5km': '🏅',
+  '10km': '🏆',
+};
+
 /**
  * Check if a given time beats the milestone target
  * @param milestone - The milestone to check against

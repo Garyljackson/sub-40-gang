@@ -13,7 +13,7 @@ self.addEventListener('install', (event) => {
       // Try to cache offline page (may fail in dev)
       try {
         await cache.add(OFFLINE_URL);
-      } catch (e) {
+      } catch {
         console.log('Offline page will be cached on first visit');
       }
     })

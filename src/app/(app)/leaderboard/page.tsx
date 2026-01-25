@@ -4,6 +4,7 @@ import { MILESTONE_KEYS, type MilestoneKey } from '@/lib/milestones';
 import { getCurrentSeason } from '@/lib/timezone';
 import { LeaderboardList } from '@/components/leaderboard-list';
 import { EmptyState } from '@/components/ui/empty-state';
+import { PageHeader } from '@/components/page-header';
 import type { LeaderboardEntry, LeaderboardMilestone } from '@/lib/types';
 
 const MILESTONE_RANK: Record<MilestoneKey, number> = {
@@ -110,20 +111,18 @@ export default async function LeaderboardPage() {
   const data = await getLeaderboardData(session.memberId);
 
   return (
-    <main className="p-4">
-      <header className="mb-4">
-        <h1 className="text-2xl font-bold text-gray-100">Leaderboard</h1>
-        <p className="text-gray-400">Season {data.season}</p>
-      </header>
-
-      {data.entries.length > 0 ? (
-        <LeaderboardList entries={data.entries} currentMemberId={data.currentMemberId} />
-      ) : (
-        <EmptyState
-          message="No members yet"
-          description="Be the first to join and start tracking milestones!"
-        />
-      )}
+    <main>
+      <PageHeader title="Leaderboard" subtitle="Race to Sub 40" />
+      <div className="p-4">
+        {data.entries.length > 0 ? (
+          <LeaderboardList entries={data.entries} currentMemberId={data.currentMemberId} />
+        ) : (
+          <EmptyState
+            message="No members yet"
+            description="Be the first to join and start tracking milestones!"
+          />
+        )}
+      </div>
     </main>
   );
 }

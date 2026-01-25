@@ -40,12 +40,12 @@ test.describe('Onboarding - Unauthenticated', () => {
   test('displays milestone preview icons', async ({ page }) => {
     await page.goto('/');
 
-    // Check all 5 milestone previews are visible (use exact match to avoid partial matches)
-    await expect(page.getByText('1km', { exact: true })).toBeVisible();
-    await expect(page.getByText('2km', { exact: true })).toBeVisible();
-    await expect(page.getByText('5km', { exact: true })).toBeVisible();
-    await expect(page.getByText('7.5km', { exact: true })).toBeVisible();
-    await expect(page.getByText('10km', { exact: true })).toBeVisible();
+    // Check all 5 milestone emoji previews are visible
+    await expect(page.getByText('🥉')).toBeVisible();
+    await expect(page.getByText('🥈')).toBeVisible();
+    await expect(page.getByText('🥇')).toBeVisible();
+    await expect(page.getByText('🏅')).toBeVisible();
+    await expect(page.getByText('🏆')).toBeVisible();
   });
 
   test('shows Strava sync message', async ({ page }) => {

@@ -9,7 +9,7 @@ interface ConfettiPiece {
   color: string;
 }
 
-const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6', '#ec4899'];
+const COLORS = ['#f97316', '#eab308', '#ef4444', '#22c55e', '#3b82f6', '#8b5cf6'];
 
 function generatePieces(): ConfettiPiece[] {
   return Array.from({ length: 50 }).map((_, i) => ({

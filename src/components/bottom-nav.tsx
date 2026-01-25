@@ -13,7 +13,7 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="pb-safe fixed right-0 bottom-0 left-0 border-t border-gray-800 bg-gray-900/95 backdrop-blur-sm">
+    <nav className="pb-safe fixed right-0 bottom-0 left-0 border-t border-gray-100 bg-white/95 backdrop-blur-sm">
       <div className="flex justify-around py-2">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href;
@@ -22,7 +22,7 @@ export function BottomNav() {
               key={item.href}
               href={item.href}
               className={`flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-1 rounded-lg px-4 py-2 transition-colors ${
-                isActive ? 'text-brand-primary' : 'text-gray-400 hover:text-gray-200'
+                isActive ? 'text-brand-primary' : 'text-gray-400 hover:text-gray-600'
               }`}
             >
               <item.icon className="h-6 w-6" />

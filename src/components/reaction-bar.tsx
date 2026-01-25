@@ -69,10 +69,10 @@ export function ReactionBar({ achievementId, reactions, onUpdate }: ReactionBarP
         <button
           key={reaction.emoji}
           onClick={() => handleReaction(reaction.emoji as AllowedEmoji)}
-          className={`flex items-center gap-1 rounded-full px-2 py-1 text-sm transition-colors ${
+          className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-sm transition-all duration-200 active:scale-110 ${
             reaction.hasReacted
-              ? 'bg-brand-primary/20 text-brand-primary'
-              : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+              ? 'border border-orange-200 bg-orange-100 text-orange-600'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
           <span>{reaction.emoji}</span>
@@ -83,19 +83,19 @@ export function ReactionBar({ achievementId, reactions, onUpdate }: ReactionBarP
       <div className="relative">
         <button
           onClick={() => setShowPicker(!showPicker)}
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-800 text-gray-400 transition-colors hover:bg-gray-700 hover:text-gray-200"
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600"
           aria-label="Add reaction"
         >
           +
         </button>
 
         {showPicker && (
-          <div className="absolute bottom-full left-0 mb-2 flex gap-1 rounded-lg border border-gray-700 bg-gray-800 p-2 shadow-lg">
+          <div className="absolute bottom-full left-0 mb-2 flex gap-1 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
             {ALLOWED_EMOJIS.map((emoji) => (
               <button
                 key={emoji}
                 onClick={() => handleReaction(emoji)}
-                className="rounded p-1 text-xl hover:bg-gray-700"
+                className="rounded p-1 text-xl hover:bg-gray-100"
               >
                 {emoji}
               </button>

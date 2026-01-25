@@ -2,6 +2,7 @@ import { getSession } from '@/lib/auth';
 import { createServiceClient } from '@/lib/supabase-server';
 import { getCurrentSeason } from '@/lib/timezone';
 import { FeedList } from '@/components/feed-list';
+import { PageHeader } from '@/components/page-header';
 import type { FeedResponse, FeedAchievement, FeedReaction } from '@/lib/types';
 
 const INITIAL_LIMIT = 20;
@@ -117,17 +118,15 @@ export default async function FeedPage() {
   const initialData = await getInitialFeed(session.memberId);
 
   return (
-    <main className="p-4">
-      <header className="mb-4">
-        <h1 className="text-2xl font-bold text-gray-100">Activity Feed</h1>
-        <p className="text-gray-400">Season {getCurrentSeason()}</p>
-      </header>
-
-      <FeedList
-        initialData={initialData}
-        currentMemberId={session.memberId}
-        season={getCurrentSeason()}
-      />
+    <main>
+      <PageHeader title="S40G" subtitle="Sub 40 Gang Activity" />
+      <div className="p-4">
+        <FeedList
+          initialData={initialData}
+          currentMemberId={session.memberId}
+          season={getCurrentSeason()}
+        />
+      </div>
     </main>
   );
 }

@@ -1,4 +1,4 @@
-import { MILESTONES, formatTime, type MilestoneKey } from '@/lib/milestones';
+import { MILESTONES, MILESTONE_EMOJIS, formatTime, type MilestoneKey } from '@/lib/milestones';
 
 interface MilestoneBadgeProps {
   milestone: MilestoneKey;
@@ -6,48 +6,25 @@ interface MilestoneBadgeProps {
   timeSeconds?: number;
   size?: 'sm' | 'md' | 'lg';
   showTime?: boolean;
+  showLabel?: boolean;
 }
 
-// Color gradients from shorter to longer distances
-const milestoneColors: Record<MilestoneKey, { bg: string; border: string; text: string }> = {
-  '1km': {
-    bg: 'bg-emerald-900/50',
-    border: 'border-emerald-500',
-    text: 'text-emerald-400',
-  },
-  '2km': {
-    bg: 'bg-teal-900/50',
-    border: 'border-teal-500',
-    text: 'text-teal-400',
-  },
-  '5km': {
-    bg: 'bg-blue-900/50',
-    border: 'border-blue-500',
-    text: 'text-blue-400',
-  },
-  '7.5km': {
-    bg: 'bg-purple-900/50',
-    border: 'border-purple-500',
-    text: 'text-purple-400',
-  },
-  '10km': {
-    bg: 'bg-amber-900/50',
-    border: 'border-amber-500',
-    text: 'text-amber-400',
-  },
-};
-
-const lockedColors = {
-  bg: 'bg-gray-800/50',
-  border: 'border-gray-600',
-  text: 'text-gray-500',
-};
-
 const sizeClasses = {
-  sm: 'px-2 py-1 text-xs',
-  md: 'px-3 py-1.5 text-sm',
-  lg: 'px-4 py-2 text-base',
+  sm: 'h-10 w-10 text-lg',
+  md: 'h-14 w-14 text-2xl',
+  lg: 'h-20 w-20 text-4xl',
 };
+
+const labelSizeClasses = {
+  sm: 'text-xs',
+  md: 'text-sm',
+  lg: 'text-base',
+};
+
+function formatTargetTime(milestone: MilestoneKey): string {
+  const data = MILESTONES[milestone];
+  return `under ${formatTime(data.targetTimeSeconds)}`;
+}
 
 export function MilestoneBadge({
   milestone,
@@ -55,18 +32,34 @@ export function MilestoneBadge({
   timeSeconds,
   size = 'md',
   showTime = false,
+  showLabel = true,
 }: MilestoneBadgeProps) {
-  const colors = achieved ? milestoneColors[milestone] : lockedColors;
   const milestoneData = MILESTONES[milestone];
+  const emoji = MILESTONE_EMOJIS[milestone];
 
   return (
-    <div
-      className={`inline-flex flex-col items-center rounded-lg border ${colors.bg} ${colors.border} ${sizeClasses[size]}`}
-    >
-      <span className={`font-bold ${colors.text}`}>{milestoneData.displayName}</span>
+    <div className="flex flex-col items-center gap-1">
+      <div
+        className={`flex items-center justify-center rounded-full transition-all duration-300 ${sizeClasses[size]} ${
+          achieved ? 'bg-gradient-to-br from-amber-200/40 to-amber-100/20' : 'bg-gray-100'
+        }`}
+      >
+        <span className={achieved ? '' : 'opacity-40 grayscale'}>{emoji}</span>
+      </div>
+      {showLabel && (
+        <span
+          className={`font-medium ${labelSizeClasses[size]} ${
+            achieved ? 'text-gray-900' : 'text-gray-400'
+          }`}
+        >
+          {milestoneData.displayName}
+        </span>
+      )}
       {showTime && (
-        <span className={`text-xs ${achieved ? colors.text : 'text-gray-500'}`}>
-          {timeSeconds ? formatTime(timeSeconds) : formatTime(milestoneData.targetTimeSeconds)}
+        <span
+          className={`text-xs ${achieved ? 'text-brand-primary font-semibold' : 'text-gray-400'}`}
+        >
+          {achieved && timeSeconds ? formatTime(timeSeconds) : formatTargetTime(milestone)}
         </span>
       )}
     </div>

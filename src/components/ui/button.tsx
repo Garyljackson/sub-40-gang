@@ -6,10 +6,10 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses = {
-  primary: 'bg-brand-primary text-white hover:bg-brand-primary/90 active:bg-brand-primary/80',
+  primary: 'bg-brand-primary text-white hover:bg-brand-dark active:bg-orange-700',
   secondary:
-    'bg-gray-800 text-gray-100 hover:bg-gray-700 active:bg-gray-600 border border-gray-700',
-  ghost: 'text-gray-400 hover:text-gray-100 hover:bg-gray-800 active:bg-gray-700',
+    'bg-gray-100 text-gray-900 hover:bg-gray-200 active:bg-gray-300 border border-gray-200',
+  ghost: 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 active:bg-gray-200',
 };
 
 const sizeClasses = {
@@ -23,7 +23,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         ref={ref}
-        className={`focus:ring-brand-primary inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-950 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+        className={`focus:ring-brand-primary inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-offset-white focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
         disabled={disabled}
         {...props}
       >

@@ -1,15 +1,15 @@
 function LeaderboardRowSkeleton() {
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-gray-800 bg-gray-900 p-3">
-      <div className="h-8 w-8 animate-pulse rounded bg-gray-800" />
-      <div className="h-8 w-8 animate-pulse rounded-full bg-gray-800" />
+    <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+      <div className="h-8 w-8 animate-pulse rounded bg-gray-200" />
+      <div className="h-8 w-8 animate-pulse rounded-full bg-gray-200" />
       <div className="flex-1 space-y-2">
-        <div className="h-4 w-28 animate-pulse rounded bg-gray-800" />
-        <div className="h-3 w-20 animate-pulse rounded bg-gray-800" />
+        <div className="h-4 w-28 animate-pulse rounded bg-gray-200" />
+        <div className="h-3 w-20 animate-pulse rounded bg-gray-200" />
       </div>
       <div className="flex gap-1">
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="h-2 w-2 animate-pulse rounded-full bg-gray-800" />
+          <div key={i} className="h-2 w-2 animate-pulse rounded-full bg-gray-200" />
         ))}
       </div>
     </div>
