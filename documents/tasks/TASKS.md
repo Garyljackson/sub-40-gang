@@ -4,48 +4,48 @@
 
 ### 1.1 Initialize Next.js Project
 
-- [ ] **Create Next.js 16.x project with TypeScript**
+- [x] **Create Next.js 16.x project with TypeScript**
   - Use `create-next-app` with App Router and Turbopack
   - Configure TypeScript 5.9.x in strict mode
   - Set up path aliases (`@/*`)
 
 ### 1.2 Configure Package Manager
 
-- [ ] **Set up pnpm workspace**
+- [x] **Set up pnpm workspace**
   - Create `.npmrc` with pnpm configuration
   - Add `packageManager` field to `package.json`
 
 ### 1.3 Configure Code Quality Tools
 
-- [ ] **Set up ESLint 9.x with flat config**
+- [x] **Set up ESLint 9.x with flat config**
   - Install ESLint and TypeScript ESLint plugins
   - Configure React and Next.js rules
   - Add lint script to package.json
 
-- [ ] **Set up Prettier**
+- [x] **Set up Prettier**
   - Install Prettier and Tailwind CSS plugin
   - Create `.prettierrc` configuration
   - Add format script to package.json
 
-- [ ] **Set up Husky and lint-staged**
+- [x] **Set up Husky and lint-staged**
   - Install Husky and configure git hooks
   - Add pre-commit hook for linting
   - Add pre-push hook for type checking and tests
 
-- [ ] **Set up commitlint**
+- [x] **Set up commitlint**
   - Install commitlint with conventional config
   - Add commit-msg hook for message validation
 
 ### 1.4 Configure Tailwind CSS
 
-- [ ] **Set up Tailwind CSS 4.x**
+- [x] **Set up Tailwind CSS 4.x**
   - Install Tailwind and configure for Next.js
   - Create base styles in `globals.css`
   - Configure mobile-first breakpoints
 
 ### 1.5 Environment Configuration
 
-- [ ] **Create environment file templates**
+- [x] **Create environment file templates**
   - Create `.env.example` with all required variables
   - Add `.env.local` to `.gitignore`
   - Document environment variables in README
@@ -341,12 +341,12 @@
 
 ### 7.1 Test Infrastructure
 
-- [ ] **Set up Vitest**
+- [x] **Set up Vitest**
   - Install Vitest and configure for Next.js
   - Create `vitest.config.ts`
   - Add test scripts to package.json
 
-- [ ] **Set up MSW for API mocking**
+- [x] **Set up MSW for API mocking**
   - Install MSW and create handlers
   - Create Strava API mock handlers
   - Set up test server
@@ -384,7 +384,7 @@
 
 ### 7.4 E2E Tests
 
-- [ ] **Set up Playwright**
+- [x] **Set up Playwright**
   - Install Playwright and configure
   - Create `playwright.config.ts`
   - Add e2e script to package.json
@@ -452,12 +452,12 @@
 
 | Phase                        | Tasks  | Completed |
 | ---------------------------- | ------ | --------- |
-| 1. Project Setup             | 8      | 0         |
+| 1. Project Setup             | 8      | 8         |
 | 2. Database & Infrastructure | 9      | 0         |
 | 3. Strava Integration        | 14     | 0         |
 | 4. Core Features             | 10     | 0         |
 | 5. Social Features           | 4      | 0         |
 | 6. PWA & Polish              | 9      | 0         |
-| 7. Testing                   | 11     | 0         |
+| 7. Testing                   | 11     | 3         |
 | 8. Deployment                | 8      | 0         |
-| **Total**                    | **73** | **0**     |
+| **Total**                    | **73** | **11**    |
