@@ -98,7 +98,7 @@ pnpm test:e2e
 ### Test Structure
 
 ```
-__tests__/
+src/__tests__/
 ├── fixtures/           # Test data fixtures
 │   ├── strava-streams.ts   # Strava activity stream data
 │   ├── activities.ts       # Strava activity objects
@@ -155,7 +155,7 @@ E2E tests require:
 
 ### Writing Tests
 
-- **Unit tests**: Pure functions in `lib/` - test edge cases thoroughly
+- **Unit tests**: Pure functions in `src/lib/` - test edge cases thoroughly
 - **Integration tests**: API routes - mock Supabase and external APIs with MSW
 - **E2E tests**: User journeys - use seeded database for realistic data
 

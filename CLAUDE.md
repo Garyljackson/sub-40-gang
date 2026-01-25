@@ -83,12 +83,12 @@ Strava webhooks must respond within 2 seconds but only contain activity IDs. Pro
 
 ### Key Files (when implemented)
 
-- `lib/best-effort.ts` - Sliding window algorithm for finding fastest segments
-- `lib/milestones.ts` - Milestone configuration (distances, target times)
-- `lib/timezone.ts` - Brisbane timezone helpers (seasons run Jan 1 - Dec 31 Brisbane time)
-- `lib/process-activity.ts` - Achievement calculation logic
-- `app/api/webhooks/strava/route.ts` - Webhook handler (queues events)
-- `app/api/cron/process-queue/route.ts` - Queue processor
+- `src/lib/best-effort.ts` - Sliding window algorithm for finding fastest segments
+- `src/lib/milestones.ts` - Milestone configuration (distances, target times)
+- `src/lib/timezone.ts` - Brisbane timezone helpers (seasons run Jan 1 - Dec 31 Brisbane time)
+- `src/lib/process-activity.ts` - Achievement calculation logic
+- `src/app/api/webhooks/strava/route.ts` - Webhook handler (queues events)
+- `src/app/api/cron/process-queue/route.ts` - Queue processor
 
 ### Seasons
 
@@ -105,7 +105,7 @@ Seasons run January 1 - December 31 in Brisbane time (Australia/Brisbane). Each 
 
 Since Strava has no sandbox, use:
 
-1. **Unit tests with fixtures** - Simulate activity streams in `__tests__/fixtures/strava-streams.ts`
+1. **Unit tests with fixtures** - Simulate activity streams in `src/__tests__/fixtures/strava-streams.ts`
 2. **MSW mocks** - Mock Strava API responses for integration tests
 3. **Webhook simulation** - `pnpm tsx scripts/simulate-webhook.ts --activity 123456 --athlete 789`
 4. **Database seeding** - `pnpm db:reset` applies seed data for UI testing

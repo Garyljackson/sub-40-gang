@@ -258,7 +258,7 @@ Generate TypeScript types from your database schema:
 
 ```bash
 # Generate types from local database
-pnpm supabase gen types typescript --local > lib/database.types.ts
+pnpm supabase gen types typescript --local > src/lib/database.types.ts
 ```
 
 Add to package.json scripts:
@@ -270,7 +270,7 @@ Add to package.json scripts:
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
     "db:diff": "supabase db diff",
-    "db:types": "supabase gen types typescript --local > lib/database.types.ts",
+    "db:types": "supabase gen types typescript --local > src/lib/database.types.ts",
     "dev": "next dev --turbo"
   }
 }
@@ -1022,7 +1022,7 @@ async function fetchActivityStreams(activityId: string, accessToken: string): Pr
 ### Milestone Configuration
 
 ```typescript
-// lib/milestones.ts
+// src/lib/milestones.ts
 
 export const MILESTONES = {
   '1km': { distance: 1000, targetTime: 240 },
@@ -1040,7 +1040,7 @@ export type MilestoneKey = keyof typeof MILESTONES;
 Seasons run January 1 - December 31 in **Brisbane time (Australia/Brisbane)**. This ensures local runners experience season boundaries at their midnight, not UTC.
 
 ```typescript
-// lib/timezone.ts
+// src/lib/timezone.ts
 
 export const APP_TIMEZONE = 'Australia/Brisbane';
 
@@ -1073,7 +1073,7 @@ export function getCurrentSeason(): number {
 ### Sliding Window Algorithm
 
 ```typescript
-// lib/best-effort.ts
+// src/lib/best-effort.ts
 
 interface BestEffort {
   distance: number;
@@ -1146,7 +1146,7 @@ export function findBestEffort(
 ### Achievement Processing
 
 ```typescript
-// lib/process-activity.ts
+// src/lib/process-activity.ts
 
 import { MILESTONES, MilestoneKey } from './milestones';
 import { findBestEffort } from './best-effort';
@@ -1265,7 +1265,7 @@ export async function processActivity(
 ### Supabase Realtime Configuration
 
 ```typescript
-// lib/supabase.ts
+// src/lib/supabase.ts
 
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
@@ -1279,7 +1279,7 @@ export const supabase = createClient<Database>(
 ### Client-Side Subscription
 
 ```typescript
-// hooks/use-feed-subscription.ts
+// src/hooks/use-feed-subscription.ts
 
 import { useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -1331,7 +1331,7 @@ export function useFeedSubscription(onNewAchievement: (achievement: Achievement)
 Sessions are managed using HTTP-only cookies with JWTs:
 
 ```typescript
-// lib/auth.ts
+// src/lib/auth.ts
 
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
@@ -1380,7 +1380,7 @@ export async function clearSession(): Promise<void> {
 ### API Route Protection
 
 ```typescript
-// lib/api-auth.ts
+// src/lib/api-auth.ts
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from './auth';
@@ -1569,7 +1569,7 @@ self.addEventListener('fetch', (event) => {
 ### Add to Home Screen Prompt
 
 ```typescript
-// hooks/use-install-prompt.ts
+// src/hooks/use-install-prompt.ts
 
 import { useState, useEffect } from 'react';
 
@@ -1638,7 +1638,7 @@ export function useInstallPrompt() {
 ### Unit Tests
 
 ```typescript
-// __tests__/lib/best-effort.test.ts
+// src/__tests__/lib/best-effort.test.ts
 
 import { describe, it, expect } from 'vitest';
 import { findBestEffort } from '@/lib/best-effort';
@@ -1690,7 +1690,7 @@ describe('findBestEffort', () => {
 ```
 
 ```typescript
-// __tests__/lib/timezone.test.ts
+// src/__tests__/lib/timezone.test.ts
 
 import { describe, it, expect } from 'vitest';
 import { getSeasonForDate, getCurrentSeason } from '@/lib/timezone';
@@ -1724,7 +1724,7 @@ describe('getSeasonForDate', () => {
 ### Integration Tests
 
 ```typescript
-// __tests__/api/feed.test.ts
+// src/__tests__/api/feed.test.ts
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { createMocks } from 'node-mocks-http';
@@ -1823,7 +1823,7 @@ Since Strava doesn't provide a sandbox environment, we use a multi-layered testi
 The core achievement calculation logic can be tested entirely offline using fixture data that simulates Strava activity streams.
 
 ```typescript
-// __tests__/fixtures/strava-streams.ts
+// src/__tests__/fixtures/strava-streams.ts
 
 // Simulates a 5km run at exactly 4:00/km pace (sub-40 qualifying)
 export const FAST_5K_STREAMS = {
@@ -1857,7 +1857,7 @@ export const SLOW_5K_STREAMS = {
 ```
 
 ```typescript
-// __tests__/lib/calculate-achievements.test.ts
+// src/__tests__/lib/calculate-achievements.test.ts
 
 import { describe, it, expect } from 'vitest';
 import { calculateAchievements } from '@/lib/process-activity';
@@ -1917,7 +1917,7 @@ describe('calculateAchievements', () => {
 For integration tests, mock Strava API responses without hitting the real API.
 
 ```typescript
-// __tests__/mocks/handlers.ts
+// src/__tests__/mocks/handlers.ts
 
 import { http, HttpResponse } from 'msw';
 
@@ -1970,7 +1970,7 @@ export const stravaHandlers = [
   }),
 ];
 
-// __tests__/mocks/server.ts
+// src/__tests__/mocks/server.ts
 import { setupServer } from 'msw/node';
 import { stravaHandlers } from './handlers';
 
@@ -1978,7 +1978,7 @@ export const server = setupServer(...stravaHandlers);
 
 // vitest.setup.ts
 import { beforeAll, afterEach, afterAll } from 'vitest';
-import { server } from './__tests__/mocks/server';
+import { server } from '@/__tests__/mocks/server';
 
 beforeAll(() => server.listen());
 afterEach(() => server.resetHandlers());
@@ -2249,7 +2249,7 @@ export default tseslint.config(
     "incremental": true,
     "plugins": [{ "name": "next" }],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./src/*"]
     },
     "noUncheckedIndexedAccess": true,
     "noImplicitReturns": true,
@@ -2284,7 +2284,7 @@ export default tseslint.config(
     "db:reset": "supabase db reset",
     "db:diff": "supabase db diff",
     "db:push": "supabase db push",
-    "db:types": "supabase gen types typescript --local > lib/database.types.ts"
+    "db:types": "supabase gen types typescript --local > src/lib/database.types.ts"
   },
   "devDependencies": {
     "supabase": "^2.72.8"
@@ -2473,7 +2473,7 @@ supabase db push
 Using Vercel's built-in error tracking, or optionally Sentry:
 
 ```typescript
-// lib/sentry.ts (optional)
+// src/lib/sentry.ts (optional)
 
 import * as Sentry from '@sentry/nextjs';
 
@@ -2488,7 +2488,7 @@ Sentry.init({
 ### Logging
 
 ```typescript
-// lib/logger.ts
+// src/lib/logger.ts
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
@@ -2524,7 +2524,7 @@ export const logger = {
 ### Health Check Endpoint
 
 ```typescript
-// app/api/health/route.ts
+// src/app/api/health/route.ts
 
 import { supabase } from '@/lib/supabase';
 
@@ -2557,7 +2557,7 @@ export async function GET() {
 Using Vercel Analytics (built-in):
 
 ```typescript
-// app/layout.tsx
+// src/app/layout.tsx
 
 import { Analytics } from '@vercel/analytics/react';
 
@@ -2581,75 +2581,76 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 ```
 s40g/
-├── app/
-│   ├── api/
-│   │   ├── auth/
-│   │   │   └── strava/
-│   │   │       ├── route.ts
-│   │   │       └── callback/route.ts
-│   │   ├── cron/
-│   │   │   ├── process-queue/route.ts
-│   │   │   └── token-refresh/route.ts
-│   │   ├── feed/route.ts
-│   │   ├── leaderboard/route.ts
-│   │   ├── profile/
-│   │   │   ├── route.ts
-│   │   │   └── recent-activity/route.ts
-│   │   ├── reactions/route.ts
-│   │   ├── webhooks/strava/route.ts
-│   │   └── health/route.ts
-│   ├── (app)/
+├── src/                        # Application source code
+│   ├── app/                    # Next.js App Router
+│   │   ├── api/
+│   │   │   ├── auth/
+│   │   │   │   └── strava/
+│   │   │   │       ├── route.ts
+│   │   │   │       └── callback/route.ts
+│   │   │   ├── cron/
+│   │   │   │   ├── process-queue/route.ts
+│   │   │   │   └── token-refresh/route.ts
+│   │   │   ├── feed/route.ts
+│   │   │   ├── leaderboard/route.ts
+│   │   │   ├── profile/
+│   │   │   │   ├── route.ts
+│   │   │   │   └── recent-activity/route.ts
+│   │   │   ├── reactions/route.ts
+│   │   │   ├── webhooks/strava/route.ts
+│   │   │   └── health/route.ts
+│   │   ├── (app)/
+│   │   │   ├── layout.tsx
+│   │   │   ├── page.tsx
+│   │   │   ├── leaderboard/page.tsx
+│   │   │   └── profile/page.tsx
 │   │   ├── layout.tsx
 │   │   ├── page.tsx
-│   │   ├── leaderboard/page.tsx
-│   │   └── profile/page.tsx
-│   ├── layout.tsx
-│   ├── page.tsx
-│   └── globals.css
-├── components/
-│   ├── ui/
-│   ├── feed/
-│   ├── leaderboard/
-│   └── profile/
-├── hooks/
-│   ├── use-feed-subscription.ts
-│   └── use-install-prompt.ts
-├── lib/
-│   ├── database.types.ts      # Auto-generated from Supabase CLI
-│   ├── supabase.ts
-│   ├── auth.ts
-│   ├── api-auth.ts
-│   ├── strava.ts
-│   ├── best-effort.ts
-│   ├── milestones.ts
-│   ├── timezone.ts            # Brisbane timezone helpers
-│   ├── process-activity.ts
-│   ├── queue-processor.ts
-│   └── logger.ts
+│   │   └── globals.css
+│   ├── components/             # React components
+│   │   ├── ui/
+│   │   ├── feed/
+│   │   ├── leaderboard/
+│   │   └── profile/
+│   ├── hooks/                  # Custom React hooks
+│   │   ├── use-feed-subscription.ts
+│   │   └── use-install-prompt.ts
+│   ├── lib/                    # Utilities and business logic
+│   │   ├── database.types.ts   # Auto-generated from Supabase CLI
+│   │   ├── supabase.ts
+│   │   ├── auth.ts
+│   │   ├── api-auth.ts
+│   │   ├── strava.ts
+│   │   ├── best-effort.ts
+│   │   ├── milestones.ts
+│   │   ├── timezone.ts         # Brisbane timezone helpers
+│   │   ├── process-activity.ts
+│   │   ├── queue-processor.ts
+│   │   └── logger.ts
+│   └── __tests__/              # Unit and integration tests
+│       ├── fixtures/           # Test data fixtures
+│       │   └── strava-streams.ts
+│       ├── mocks/              # MSW mock handlers
+│       │   ├── handlers.ts
+│       │   └── server.ts
+│       ├── lib/
+│       │   ├── best-effort.test.ts
+│       │   ├── timezone.test.ts
+│       │   └── calculate-achievements.test.ts
+│       └── api/
+│           ├── feed.test.ts
+│           └── webhooks.test.ts
 ├── supabase/                   # Supabase CLI folder
 │   ├── config.toml             # Local Supabase configuration
 │   ├── migrations/             # SQL migration files
 │   │   ├── 20260101000000_initial_schema.sql
 │   │   └── ...
 │   └── seed.sql                # Seed data for local development
-├── __tests__/
-│   ├── fixtures/               # Test data fixtures
-│   │   └── strava-streams.ts   # Simulated activity streams
-│   ├── mocks/                  # MSW mock handlers
-│   │   ├── handlers.ts
-│   │   └── server.ts
-│   ├── lib/
-│   │   ├── best-effort.test.ts
-│   │   ├── timezone.test.ts
-│   │   └── calculate-achievements.test.ts
-│   └── api/
-│       ├── feed.test.ts
-│       └── webhooks.test.ts
 ├── scripts/                    # Development utility scripts
 │   ├── simulate-webhook.ts     # Test webhook events locally
 │   └── generate-test-gpx.ts    # Generate GPX files for testing
-├── e2e/
-├── public/
+├── e2e/                        # Playwright E2E tests
+├── public/                     # Static assets
 │   ├── manifest.json
 │   ├── sw.js
 │   └── icons/
@@ -2657,10 +2658,10 @@ s40g/
 ├── .husky/
 ├── .env.local                  # Local environment variables (git-ignored)
 ├── .env.example                # Example env file (committed)
-├── eslint.config.js
+├── eslint.config.mjs
 ├── vitest.config.ts
+├── vitest.setup.ts
 ├── playwright.config.ts
-├── tailwind.config.ts
 ├── tsconfig.json
 └── package.json
 ```
