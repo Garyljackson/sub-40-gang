@@ -1,0 +1,92 @@
+import { NextResponse, type NextRequest } from 'next/server';
+import { exchangeCode } from '@/lib/strava';
+import { createSession } from '@/lib/auth';
+import { createServiceClient } from '@/lib/supabase-server';
+
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const code = searchParams.get('code');
+  const error = searchParams.get('error');
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+  // Handle OAuth errors
+  if (error) {
+    console.error('Strava OAuth error:', error);
+    return NextResponse.redirect(`${appUrl}?error=auth_denied`);
+  }
+
+  if (!code) {
+    return NextResponse.redirect(`${appUrl}?error=missing_code`);
+  }
+
+  try {
+    // Exchange code for tokens
+    const tokens = await exchangeCode(code);
+
+    if (!tokens.athlete) {
+      throw new Error('No athlete data returned from Strava');
+    }
+
+    const athlete = tokens.athlete;
+    const supabase = createServiceClient();
+
+    // Upsert member record (match on strava_athlete_id)
+    const memberData = {
+      strava_athlete_id: String(athlete.id),
+      name: `${athlete.firstname} ${athlete.lastname}`.trim(),
+      profile_photo_url: athlete.profile || athlete.profile_medium || null,
+      strava_access_token: tokens.access_token,
+      strava_refresh_token: tokens.refresh_token,
+      token_expires_at: new Date(tokens.expires_at * 1000).toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data: existingMember } = await supabase
+      .from('members')
+      .select('id, joined_at')
+      .eq('strava_athlete_id', String(athlete.id))
+      .single();
+
+    let memberId: string;
+
+    if (existingMember) {
+      // Update existing member
+      const { error: updateError } = await supabase
+        .from('members')
+        .update(memberData)
+        .eq('id', existingMember.id);
+
+      if (updateError) {
+        throw new Error(`Failed to update member: ${updateError.message}`);
+      }
+      memberId = existingMember.id;
+    } else {
+      // Insert new member
+      const { data: newMember, error: insertError } = await supabase
+        .from('members')
+        .insert({
+          ...memberData,
+          joined_at: new Date().toISOString(),
+        })
+        .select('id')
+        .single();
+
+      if (insertError || !newMember) {
+        throw new Error(`Failed to create member: ${insertError?.message}`);
+      }
+      memberId = newMember.id;
+    }
+
+    // Create session
+    await createSession({
+      memberId,
+      stravaAthleteId: String(athlete.id),
+      name: memberData.name,
+    });
+
+    return NextResponse.redirect(appUrl);
+  } catch (err) {
+    console.error('Strava OAuth callback error:', err);
+    return NextResponse.redirect(`${appUrl}?error=auth_failed`);
+  }
+}

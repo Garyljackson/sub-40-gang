@@ -113,48 +113,48 @@
 
 ### 3.1 OAuth Implementation
 
-- [ ] **Create Strava OAuth initiation endpoint**
+- [x] **Create Strava OAuth initiation endpoint**
   - Create `app/api/auth/strava/route.ts`
   - Build authorization URL with required scopes
   - Handle redirect to Strava
 
-- [ ] **Create OAuth callback endpoint**
+- [x] **Create OAuth callback endpoint**
   - Create `app/api/auth/strava/callback/route.ts`
   - Exchange authorization code for tokens
   - Create or update member record
   - Create session and redirect to app
 
-- [ ] **Create logout endpoint**
+- [x] **Create logout endpoint**
   - Create `app/api/auth/logout/route.ts`
   - Clear session cookie
   - Redirect to home page
 
 ### 3.2 Session Management
 
-- [ ] **Implement JWT session handling**
+- [x] **Implement JWT session handling**
   - Create `lib/auth.ts` with session utilities
   - Implement createSession, getSession, clearSession
   - Use HTTP-only cookies for security
 
-- [ ] **Create API route protection middleware**
+- [x] **Create API route protection middleware**
   - Create `lib/api-auth.ts` with withAuth wrapper
   - Return 401 for unauthenticated requests
 
 ### 3.3 Token Management
 
-- [ ] **Implement Strava token refresh**
+- [x] **Implement Strava token refresh**
   - Create `lib/strava.ts` with token refresh logic
   - Check token expiration with buffer
   - Update tokens in database after refresh
 
 ### 3.4 Webhook Setup
 
-- [ ] **Create webhook verification endpoint**
+- [x] **Create webhook verification endpoint**
   - Handle GET requests for Strava subscription verification
   - Validate verify token from environment
   - Return hub.challenge for successful verification
 
-- [ ] **Create webhook event handler**
+- [x] **Create webhook event handler**
   - Handle POST requests for activity events
   - Filter for activity create events
   - Queue events for async processing
@@ -162,13 +162,13 @@
 
 ### 3.5 Queue Processing
 
-- [ ] **Create cron job for queue processing**
+- [x] **Create cron job for queue processing**
   - Create `app/api/cron/process-queue/route.ts`
   - Protect with CRON_SECRET header
   - Fetch pending queue items
   - Process each item with retry logic
 
-- [ ] **Implement activity processing**
+- [x] **Implement activity processing**
   - Fetch activity details from Strava API
   - Fetch activity streams (time, distance)
   - Filter for run activities
@@ -176,21 +176,21 @@
 
 ### 3.6 Achievement Calculation
 
-- [ ] **Create milestone configuration**
+- [x] **Create milestone configuration**
   - Create `lib/milestones.ts` with distance/time targets
   - Define all 5 milestones (1km, 2km, 5km, 7.5km, 10km)
 
-- [ ] **Create timezone utilities**
+- [x] **Create timezone utilities**
   - Create `lib/timezone.ts` for Brisbane time
   - Implement getSeasonForDate function
   - Implement getCurrentSeason function
 
-- [ ] **Implement sliding window algorithm**
+- [x] **Implement sliding window algorithm**
   - Create `lib/best-effort.ts`
   - Find fastest segment for target distance
   - Return best effort with actual distance and time
 
-- [ ] **Create activity processing logic**
+- [x] **Create activity processing logic**
   - Create `lib/process-activity.ts`
   - Check each milestone against best effort
   - Insert new achievements to database
@@ -454,10 +454,10 @@
 | ---------------------------- | ------ | --------- |
 | 1. Project Setup             | 8      | 8         |
 | 2. Database & Infrastructure | 9      | 9         |
-| 3. Strava Integration        | 14     | 0         |
+| 3. Strava Integration        | 14     | 14        |
 | 4. Core Features             | 10     | 0         |
 | 5. Social Features           | 4      | 0         |
 | 6. PWA & Polish              | 9      | 0         |
 | 7. Testing                   | 11     | 3         |
 | 8. Deployment                | 8      | 0         |
-| **Total**                    | **73** | **20**    |
+| **Total**                    | **73** | **34**    |
