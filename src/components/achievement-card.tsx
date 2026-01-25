@@ -102,12 +102,12 @@ export function AchievementCard({ achievement, onReactionUpdate }: AchievementCa
           )}
         </div>
 
-        {/* Strava link */}
+        {/* Strava link - per Strava guidelines: orange color (#FC5200) */}
         <a
           href={`https://www.strava.com/activities/${achievement.stravaActivityId}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-brand-primary inline-flex items-center gap-1 text-sm hover:underline"
+          className="text-strava inline-flex items-center gap-1 text-sm font-medium hover:underline"
         >
           <ArrowIcon className="h-4 w-4" />
           View on Strava

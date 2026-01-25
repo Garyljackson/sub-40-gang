@@ -30,7 +30,7 @@ export function RecentRunCard({ activity }: RecentRunCardProps) {
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <StravaIcon className="text-brand-primary h-5 w-5" />
+            <StravaIcon className="text-strava h-5 w-5" />
             <span className="text-sm font-medium text-gray-600">Last synced run</span>
           </div>
           <span className="text-sm text-gray-500">{formatDate(activity.activityDate)}</span>

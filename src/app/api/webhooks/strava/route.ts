@@ -31,19 +31,24 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * POST handler: Receive activity events
+ * POST handler: Receive activity and athlete events
  * Must respond within 2 seconds, so we just queue the event and return immediately
  */
 export async function POST(request: NextRequest) {
   try {
     const event: StravaWebhookEvent = await request.json();
+    const supabase = createServiceClient();
+
+    // Handle athlete deauthorization events (required by Strava API terms)
+    if (event.object_type === 'athlete' && event.updates?.authorized === 'false') {
+      await handleDeauthorization(supabase, String(event.owner_id));
+      return NextResponse.json({ received: true });
+    }
 
     // Only process activity creation events
     if (event.object_type !== 'activity' || event.aspect_type !== 'create') {
       return NextResponse.json({ received: true });
     }
-
-    const supabase = createServiceClient();
 
     // Check if the athlete is a registered member
     const { data: member } = await supabase
@@ -79,4 +84,32 @@ export async function POST(request: NextRequest) {
     // Still return 200 to prevent Strava from retrying
     return NextResponse.json({ received: true });
   }
+}
+
+/**
+ * Handle athlete deauthorization
+ * Clears Strava tokens and removes pending queue items
+ * Achievements are preserved so user can re-authenticate later
+ */
+async function handleDeauthorization(
+  supabase: ReturnType<typeof createServiceClient>,
+  stravaAthleteId: string
+) {
+  // Clear Strava tokens for the member
+  await supabase
+    .from('members')
+    .update({
+      strava_access_token: null,
+      strava_refresh_token: null,
+      token_expires_at: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('strava_athlete_id', stravaAthleteId);
+
+  // Delete pending webhook queue items (can't process without tokens)
+  await supabase
+    .from('webhook_queue')
+    .delete()
+    .eq('strava_athlete_id', stravaAthleteId)
+    .eq('status', 'pending');
 }

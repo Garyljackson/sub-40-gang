@@ -9,12 +9,36 @@ vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'test-service-role-key');
 
 // Mock Supabase client
 const mockUpsert = vi.fn().mockResolvedValue({ data: null, error: null });
+const mockUpdate = vi.fn().mockReturnValue({
+  eq: vi.fn().mockResolvedValue({ data: null, error: null }),
+});
+const mockDelete = vi.fn().mockReturnValue({
+  eq: vi.fn().mockReturnValue({
+    eq: vi.fn().mockResolvedValue({ data: null, error: null }),
+  }),
+});
 const mockSingle = vi.fn();
 const mockEq = vi.fn().mockReturnValue({ single: mockSingle });
 const mockSelect = vi.fn().mockReturnValue({ eq: mockEq });
-const mockFrom = vi.fn().mockReturnValue({
-  select: mockSelect,
-  upsert: mockUpsert,
+const mockFrom = vi.fn().mockImplementation((table: string) => {
+  if (table === 'members') {
+    return {
+      select: mockSelect,
+      update: mockUpdate,
+    };
+  }
+  if (table === 'webhook_queue') {
+    return {
+      upsert: mockUpsert,
+      delete: mockDelete,
+    };
+  }
+  return {
+    select: mockSelect,
+    upsert: mockUpsert,
+    update: mockUpdate,
+    delete: mockDelete,
+  };
 });
 
 vi.mock('@/lib/supabase-server', () => ({
@@ -149,7 +173,7 @@ describe('POST /api/webhooks/strava (events)', () => {
     );
   });
 
-  it('ignores non-activity events', async () => {
+  it('ignores non-activity events without deauth flag', async () => {
     const request = createRequest('/api/webhooks/strava', {
       method: 'POST',
       body: {
@@ -159,6 +183,7 @@ describe('POST /api/webhooks/strava (events)', () => {
         owner_id: 10001,
         subscription_id: 12345,
         event_time: 1700000000,
+        updates: { profile: 'updated' }, // Not a deauthorization
       },
     });
 
@@ -168,8 +193,9 @@ describe('POST /api/webhooks/strava (events)', () => {
     expect(response.status).toBe(200);
     expect(data).toEqual({ received: true });
 
-    // Should not query members or queue anything
-    expect(mockFrom).not.toHaveBeenCalled();
+    // Should not update members or delete queue items
+    expect(mockUpdate).not.toHaveBeenCalled();
+    expect(mockDelete).not.toHaveBeenCalled();
   });
 
   it('ignores non-create events', async () => {
@@ -298,5 +324,75 @@ describe('POST /api/webhooks/strava (events)', () => {
         ignoreDuplicates: true,
       })
     );
+  });
+});
+
+describe('POST /api/webhooks/strava (deauthorization)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('handles athlete deauthorization events', async () => {
+    const request = createRequest('/api/webhooks/strava', {
+      method: 'POST',
+      body: {
+        object_type: 'athlete',
+        object_id: Number(alice.strava_athlete_id),
+        aspect_type: 'update',
+        owner_id: Number(alice.strava_athlete_id),
+        subscription_id: 12345,
+        event_time: 1700000000,
+        updates: { authorized: 'false' },
+      },
+    });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data).toEqual({ received: true });
+
+    // Should clear tokens in members table
+    expect(mockFrom).toHaveBeenCalledWith('members');
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        strava_access_token: null,
+        strava_refresh_token: null,
+        token_expires_at: null,
+      })
+    );
+
+    // Should delete pending webhook queue items
+    expect(mockFrom).toHaveBeenCalledWith('webhook_queue');
+    expect(mockDelete).toHaveBeenCalled();
+  });
+
+  it('does not treat authorized true as deauthorization', async () => {
+    const request = createRequest('/api/webhooks/strava', {
+      method: 'POST',
+      body: {
+        object_type: 'athlete',
+        object_id: Number(alice.strava_athlete_id),
+        aspect_type: 'update',
+        owner_id: Number(alice.strava_athlete_id),
+        subscription_id: 12345,
+        event_time: 1700000000,
+        updates: { authorized: 'true' },
+      },
+    });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data).toEqual({ received: true });
+
+    // Should not clear tokens
+    expect(mockUpdate).not.toHaveBeenCalled();
+    expect(mockDelete).not.toHaveBeenCalled();
   });
 });

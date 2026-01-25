@@ -131,6 +131,11 @@ export async function getValidToken(memberId: string): Promise<string> {
     throw new Error(`Member not found: ${memberId}`);
   }
 
+  // Check if user has deauthorized (tokens are null)
+  if (!member.strava_access_token || !member.strava_refresh_token || !member.token_expires_at) {
+    throw new Error(`Member ${memberId} has deauthorized - no valid tokens`);
+  }
+
   const expiresAt = new Date(member.token_expires_at).getTime();
   const now = Date.now();
 
