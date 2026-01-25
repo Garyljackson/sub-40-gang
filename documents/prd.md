@@ -48,6 +48,7 @@ Transform a single intimidating goal into a series of celebratory moments. Every
 | Activity Feed | Chronological feed of achievements across the group |
 | Leaderboard | Shows milestone progress for all members |
 | Reactions | Members can react to achievements (🎉, 🔥, etc.) |
+| Recent Activity | Shows user's last synced run on profile for sync visibility |
 | Auto Seasons | Challenge period auto-resets each calendar year |
 | PWA | Installable on mobile, works offline for viewing |
 
@@ -151,133 +152,17 @@ S40G
 
 ---
 
-## Technical Architecture
+## Technical Reference
 
-### Tech Stack
+For implementation details including:
+- System architecture and tech stack
+- Database schema and data models
+- API endpoints and request/response schemas
+- Strava integration (OAuth, webhooks, activity streams)
+- Achievement calculation algorithm
+- Testing strategy
 
-| Layer | Technology |
-|-------|------------|
-| Framework | Next.js |
-| Database | Supabase (PostgreSQL) |
-| Hosting | Vercel |
-| Styling | Tailwind CSS |
-| Auth | Strava OAuth 2.0 |
-| Real-time | Supabase Realtime |
-
-### System Diagram
-
-```
-┌─────────────┐      ┌─────────────┐      ┌─────────────┐
-│   Strava    │──────│   S40G      │──────│  Supabase   │
-│   API       │      │   (Vercel)  │      │  Database   │
-└─────────────┘      └─────────────┘      └─────────────┘
-       │                    │                    │
-       │ Webhook            │ Next.js            │ Postgres
-       │ (activity data)    │ API Routes         │ + Realtime
-       │                    │                    │
-       └────────────────────┴────────────────────┘
-```
-
-### Strava Integration
-
-**OAuth Scopes Required:**
-- `read` - Read public profile
-- `activity:read` - Read activity data
-
-**Webhook Events:**
-- `activity.create` - New activity completed
-
-**Data Retrieved:**
-
-*Athlete:*
-- ID, name, profile picture
-
-*Activity (via webhook):*
-- Activity ID, type (filter for "Run")
-
-*Activity Streams (fetched after webhook):*
-- `time` - Array of elapsed seconds at each data point
-- `distance` - Array of cumulative distance (meters) at each data point
-
-**Best Effort Calculation:**
-
-Rather than relying on Strava's predefined best effort distances, S40G calculates its own using a sliding window algorithm on the activity streams. This allows us to detect achievements at any distance (including 2km and 7.5km which Strava doesn't natively support).
-
-```
-Algorithm: Find fastest segment of target distance
-
-Input: time[], distance[], targetDistance
-Output: bestTime (or null if distance not covered)
-
-For each point i in distance[]:
-  Find earliest point j where distance[i] - distance[j] >= targetDistance
-  segmentTime = time[i] - time[j]
-  bestTime = min(bestTime, segmentTime)
-
-Return bestTime
-```
-
-This approach:
-- Works for any arbitrary distance
-- Detects fast segments within longer runs
-- Matches how Strava calculates their own best efforts
-
----
-
-## Data Models
-
-### Member
-
-| Field | Type | Description |
-|-------|------|-------------|
-| id | UUID | Primary key |
-| strava_athlete_id | String | Strava's athlete ID |
-| name | String | From Strava profile |
-| profile_photo_url | String | From Strava profile |
-| joined_at | Timestamp | When they connected Strava |
-| created_at | Timestamp | Record creation |
-
-### Achievement
-
-| Field | Type | Description |
-|-------|------|-------------|
-| id | UUID | Primary key |
-| member_id | UUID | FK to Member |
-| milestone | Enum | 1km, 2km, 5km, 7.5km, 10km |
-| season | Integer | Year (e.g., 2026) |
-| strava_activity_id | String | Reference to the qualifying run |
-| achieved_at | Timestamp | When the run occurred |
-| distance | Float | Actual distance run (meters) |
-| time | Integer | Actual time (seconds) |
-| created_at | Timestamp | Record creation |
-
-### Reaction
-
-| Field | Type | Description |
-|-------|------|-------------|
-| id | UUID | Primary key |
-| achievement_id | UUID | FK to Achievement |
-| member_id | UUID | FK to Member (who reacted) |
-| emoji | String | The reaction emoji |
-| created_at | Timestamp | Record creation |
-
----
-
-## API Endpoints
-
-### Authentication
-- `GET /api/auth/strava` - Initiate Strava OAuth
-- `GET /api/auth/strava/callback` - Handle OAuth callback
-
-### Webhooks
-- `POST /api/webhooks/strava` - Receive Strava activity events, fetch streams, calculate achievements
-
-### Data
-- `GET /api/feed` - Get activity feed (paginated)
-- `GET /api/leaderboard` - Get current season leaderboard
-- `GET /api/profile` - Get current user's milestone progress
-- `POST /api/reactions` - Add reaction to achievement
-- `DELETE /api/reactions/:id` - Remove reaction
+See the **[Technical Design Document](./s40g-technical-design.md)**.
 
 ---
 
@@ -306,6 +191,13 @@ This approach:
 - User's own milestone grid
 - Locked milestones shown greyed out with target time
 - Unlocked milestones show actual achieved time
+- **Last Synced Run** card showing:
+  - Activity name (e.g., "Morning Run")
+  - Date and time
+  - Distance and pace
+  - Whether any milestones were unlocked from it
+  - "Synced X minutes ago" timestamp
+- Helps users verify their runs are being processed
 
 ### PWA Requirements
 - Service worker for offline viewing
@@ -328,10 +220,9 @@ This approach:
 
 ## Open Questions
 
-1. What emoji set for reactions? (Suggest: 🎉 🔥 💪 👏)
-2. App icon design - who's creating it?
-3. Domain name - s40g.app? sub40gang.com?
-4. Do we need an admin view, or is the group self-managing?
+1. App icon design - who's creating it?
+2. Domain name - s40g.app? sub40gang.com?
+3. Do we need an admin view, or is the group self-managing?
 
 ---
 
@@ -349,69 +240,11 @@ This approach:
 
 ## Appendix
 
-### Strava Webhook Setup
+### Reaction Emoji Set
 
-Strava requires a verification endpoint before sending webhooks:
+Suggested reactions: 🎉 🔥 💪 👏
 
-1. Create `GET /api/webhooks/strava` that echoes back `hub.challenge`
-2. Register subscription via Strava API
-3. Implement `POST /api/webhooks/strava` to handle events
+### Related Documents
 
-### Activity Streams Fetching
-
-After receiving a webhook for a new activity:
-
-```
-GET https://www.strava.com/api/v3/activities/{id}/streams?keys=time,distance&key_by_type=true
-```
-
-Returns:
-```json
-{
-  "time": {
-    "data": [0, 1, 2, 3, ...],
-    "series_type": "distance",
-    "resolution": "high"
-  },
-  "distance": {
-    "data": [0, 2.8, 5.9, 9.2, ...],
-    "series_type": "distance",
-    "resolution": "high"
-  }
-}
-```
-
-### Sliding Window Algorithm (Pseudocode)
-
-```javascript
-function findBestEffort(timeStream, distanceStream, targetDistance) {
-  let bestTime = Infinity;
-  let j = 0;
-  
-  for (let i = 0; i < distanceStream.length; i++) {
-    // Move j forward until we have at least targetDistance
-    while (j < distanceStream.length && 
-           distanceStream[j] - distanceStream[i] < targetDistance) {
-      j++;
-    }
-    
-    // If we found a valid segment
-    if (j < distanceStream.length) {
-      const segmentTime = timeStream[j] - timeStream[i];
-      bestTime = Math.min(bestTime, segmentTime);
-    }
-  }
-  
-  return bestTime === Infinity ? null : bestTime;
-}
-```
-
-### Milestone Calculation Reference
-
-| Milestone | Distance (m) | Target Time (s) |
-|-----------|--------------|-----------------|
-| 1km | 1000 | 240 |
-| 2km | 2000 | 480 |
-| 5km | 5000 | 1200 |
-| 7.5km | 7500 | 1800 |
-| 10km | 10000 | 2400 |
+- [Technical Design Document](./s40g-technical-design.md) - Architecture, database schema, API specs
+- [Prerequisites Guide](./s40g-prerequisites.md) - Development environment setup

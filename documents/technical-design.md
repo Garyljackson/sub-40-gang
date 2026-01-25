@@ -333,17 +333,32 @@ pnpm supabase db push
 │ joined_at           │       │ time_seconds        │
 │ created_at          │       │ created_at          │
 │ updated_at          │       └──────────┬──────────┘
-└─────────────────────┘                  │
-                                         │
-                              ┌──────────┴──────────┐
-                              │     reactions       │
-                              ├─────────────────────┤
-                              │ id (PK)             │
-                              │ achievement_id (FK) │
-                              │ member_id (FK)      │
-                              │ emoji               │
-                              │ created_at          │
-                              └─────────────────────┘
+└────────┬────────────┘                  │
+         │                               │
+         │                    ┌──────────┴──────────┐
+         │                    │     reactions       │
+         │                    ├─────────────────────┤
+         │                    │ id (PK)             │
+         │                    │ achievement_id (FK) │
+         │                    │ member_id (FK)      │
+         │                    │ emoji               │
+         │                    │ created_at          │
+         │                    └─────────────────────┘
+         │
+         │  ┌─────────────────────────┐
+         └─<│  processed_activities   │  (Last synced run visibility)
+            ├─────────────────────────┤
+            │ id (PK)                 │
+            │ member_id (FK)          │
+            │ strava_activity_id      │
+            │ activity_name           │
+            │ activity_date           │
+            │ distance_meters         │
+            │ moving_time_seconds     │
+            │ pace_seconds_per_km     │
+            │ milestones_unlocked[]   │
+            │ processed_at            │
+            └─────────────────────────┘
 
 ┌─────────────────────┐
 │   webhook_queue     │  (Async processing)
@@ -430,6 +445,23 @@ CREATE TABLE webhook_queue (
     UNIQUE(strava_activity_id)
 );
 
+-- Processed activities table (for "last synced run" visibility)
+CREATE TABLE processed_activities (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    member_id UUID NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+    strava_activity_id VARCHAR(255) NOT NULL,
+    activity_name VARCHAR(255) NOT NULL,
+    activity_date TIMESTAMPTZ NOT NULL,
+    distance_meters DECIMAL(10, 2) NOT NULL,
+    moving_time_seconds INTEGER NOT NULL,
+    pace_seconds_per_km INTEGER NOT NULL,  -- calculated: moving_time / (distance/1000)
+    milestones_unlocked VARCHAR(50)[] DEFAULT '{}',  -- e.g., ['1km', '2km']
+    processed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    
+    -- One entry per activity
+    UNIQUE(strava_activity_id)
+);
+
 -- Indexes
 CREATE INDEX idx_achievements_member_id ON achievements(member_id);
 CREATE INDEX idx_achievements_season ON achievements(season);
@@ -438,6 +470,8 @@ CREATE INDEX idx_reactions_achievement_id ON reactions(achievement_id);
 CREATE INDEX idx_members_strava_athlete_id ON members(strava_athlete_id);
 CREATE INDEX idx_webhook_queue_status ON webhook_queue(status) WHERE status = 'pending';
 CREATE INDEX idx_webhook_queue_created_at ON webhook_queue(created_at);
+CREATE INDEX idx_processed_activities_member_id ON processed_activities(member_id);
+CREATE INDEX idx_processed_activities_processed_at ON processed_activities(member_id, processed_at DESC);
 
 -- Updated_at trigger
 CREATE OR REPLACE FUNCTION update_updated_at()
@@ -513,6 +547,7 @@ CREATE POLICY "Users can delete their own reactions"
 | GET | `/api/feed` | Get activity feed | Yes |
 | GET | `/api/leaderboard` | Get current season leaderboard | Yes |
 | GET | `/api/profile` | Get current user profile | Yes |
+| GET | `/api/profile/recent-activity` | Get user's most recent synced run | Yes |
 | GET | `/api/members/:id` | Get member profile | Yes |
 | POST | `/api/reactions` | Add reaction | Yes |
 | DELETE | `/api/reactions/:id` | Remove reaction | Yes |
@@ -582,6 +617,43 @@ interface LeaderboardMember {
   };
   totalUnlocked: number;
 }
+```
+
+#### Recent Activity Response
+
+```typescript
+// GET /api/profile/recent-activity
+
+interface RecentActivityResponse {
+  activity: RecentActivity | null;  // null if no activities synced yet
+}
+
+interface RecentActivity {
+  id: string;
+  stravaActivityId: string;
+  activityName: string;           // e.g., "Morning Run"
+  activityDate: string;           // ISO 8601
+  distanceMeters: number;
+  movingTimeSeconds: number;
+  paceSecondsPerKm: number;       // calculated pace
+  milestonesUnlocked: string[];   // e.g., ['1km', '2km'] or []
+  processedAt: string;            // ISO 8601 - when S40G processed it
+}
+
+// Example response:
+// {
+//   "activity": {
+//     "id": "abc123",
+//     "stravaActivityId": "12345678",
+//     "activityName": "Morning Run",
+//     "activityDate": "2026-01-25T07:30:00Z",
+//     "distanceMeters": 5234.5,
+//     "movingTimeSeconds": 1245,
+//     "paceSecondsPerKm": 238,
+//     "milestonesUnlocked": ["5km"],
+//     "processedAt": "2026-01-25T07:45:00Z"
+//   }
+// }
 ```
 
 #### Reaction Request
@@ -888,7 +960,7 @@ async function processActivity(activityId: string, athleteId: string) {
 
   const accessToken = await refreshStravaToken(member);
 
-  // 2. Fetch activity details to get the date
+  // 2. Fetch activity details
   const activityResponse = await fetch(
     `https://www.strava.com/api/v3/activities/${activityId}`,
     { headers: { Authorization: `Bearer ${accessToken}` } }
@@ -905,14 +977,16 @@ async function processActivity(activityId: string, athleteId: string) {
   // 3. Fetch activity streams
   const streams = await fetchActivityStreams(activityId, accessToken);
 
-  // 4. Calculate achievements
-  await calculateAndSaveAchievements(
-    member.id,
+  // 4. Process activity and calculate achievements
+  await processActivityData(member.id, {
     activityId,
+    activityName: activity.name,
     activityDate,
-    streams.time.data,
-    streams.distance.data
-  );
+    distanceMeters: activity.distance,
+    movingTimeSeconds: activity.moving_time,
+    timeStream: streams.time.data,
+    distanceStream: streams.distance.data,
+  });
 }
 ```
 
@@ -1085,6 +1159,16 @@ import { MILESTONES, MilestoneKey } from './milestones';
 import { findBestEffort } from './best-effort';
 import { getSeasonForDate } from './timezone';
 
+interface ActivityData {
+  activityId: string;
+  activityName: string;
+  activityDate: Date;
+  distanceMeters: number;
+  movingTimeSeconds: number;
+  timeStream: number[];
+  distanceStream: number[];
+}
+
 interface NewAchievement {
   milestone: MilestoneKey;
   distance: number;
@@ -1093,11 +1177,18 @@ interface NewAchievement {
 
 export async function processActivity(
   memberId: string,
-  activityId: string,
-  activityDate: Date,
-  timeStream: number[],
-  distanceStream: number[]
+  activity: ActivityData
 ): Promise<NewAchievement[]> {
+  const { 
+    activityId, 
+    activityName, 
+    activityDate, 
+    distanceMeters, 
+    movingTimeSeconds,
+    timeStream, 
+    distanceStream 
+  } = activity;
+
   // Calculate season based on Brisbane time, not UTC
   const season = getSeasonForDate(activityDate);
   const newAchievements: NewAchievement[] = [];
@@ -1153,6 +1244,26 @@ export async function processActivity(
       }))
     );
   }
+
+  // Calculate pace (seconds per km)
+  const paceSecondsPerKm = distanceMeters > 0 
+    ? Math.round(movingTimeSeconds / (distanceMeters / 1000))
+    : 0;
+
+  // Store in processed_activities for "last synced run" visibility
+  await supabase.from('processed_activities').upsert({
+    member_id: memberId,
+    strava_activity_id: activityId,
+    activity_name: activityName,
+    activity_date: activityDate.toISOString(),
+    distance_meters: distanceMeters,
+    moving_time_seconds: movingTimeSeconds,
+    pace_seconds_per_km: paceSecondsPerKm,
+    milestones_unlocked: newAchievements.map(a => a.milestone),
+    processed_at: new Date().toISOString(),
+  }, {
+    onConflict: 'strava_activity_id',
+  });
 
   return newAchievements;
 }
@@ -2491,7 +2602,9 @@ s40g/
 │   │   │   └── token-refresh/route.ts
 │   │   ├── feed/route.ts
 │   │   ├── leaderboard/route.ts
-│   │   ├── profile/route.ts
+│   │   ├── profile/
+│   │   │   ├── route.ts
+│   │   │   └── recent-activity/route.ts
 │   │   ├── reactions/route.ts
 │   │   ├── webhooks/strava/route.ts
 │   │   └── health/route.ts

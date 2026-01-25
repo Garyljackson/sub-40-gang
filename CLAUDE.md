@@ -17,6 +17,19 @@ S40G (Sub 40 Gang) is a mobile-first web app that tracks running milestones for 
 - **Package Manager:** pnpm 9.x
 - **Testing:** Vitest (unit/integration), Playwright (E2E), MSW (API mocking)
 
+## Development Guidelines
+
+### Prefer CLI Tools Over Manual Code Generation
+
+When adding dependencies, scaffolding, or configuring tools, always use official CLI commands rather than manually generating code or configuration files. This ensures correct setup and follows recommended patterns.
+
+Examples:
+- **Adding packages:** Use `pnpm add <package>` instead of manually editing `package.json`
+- **Project scaffolding:** Use `create-next-app`, `create-react-app`, or similar tools when available
+- **Database migrations:** Use `pnpm db:diff` to generate migrations from schema changes
+- **Type generation:** Use `pnpm db:types` to generate TypeScript types from Supabase schema
+- **Adding testing libraries:** Use CLI installers like `npx playwright install` for browser binaries
+
 ## Commands
 
 ```bash
