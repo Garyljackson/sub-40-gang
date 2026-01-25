@@ -123,7 +123,11 @@ export default async function FeedPage() {
         <p className="text-gray-400">Season {getCurrentSeason()}</p>
       </header>
 
-      <FeedList initialData={initialData} />
+      <FeedList
+        initialData={initialData}
+        currentMemberId={session.memberId}
+        season={getCurrentSeason()}
+      />
     </main>
   );
 }

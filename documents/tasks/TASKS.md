@@ -277,11 +277,11 @@
 
 ### 5.2 Real-time Updates
 
-- [ ] **Set up Supabase Realtime**
+- [x] **Set up Supabase Realtime**
   - Enable realtime for achievements table
   - Enable realtime for reactions table
 
-- [ ] **Create feed subscription hook**
+- [x] **Create feed subscription hook**
   - Create `hooks/use-feed-subscription.ts`
   - Subscribe to new achievements
   - Update feed in real-time
@@ -456,8 +456,8 @@
 | 2. Database & Infrastructure | 9      | 9         |
 | 3. Strava Integration        | 14     | 14        |
 | 4. Core Features             | 10     | 10        |
-| 5. Social Features           | 4      | 2         |
+| 5. Social Features           | 4      | 4         |
 | 6. PWA & Polish              | 9      | 0         |
 | 7. Testing                   | 11     | 3         |
 | 8. Deployment                | 8      | 0         |
-| **Total**                    | **73** | **46**    |
+| **Total**                    | **73** | **48**    |

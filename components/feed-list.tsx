@@ -4,13 +4,16 @@ import { useState, useCallback } from 'react';
 import { AchievementCard } from './achievement-card';
 import { Button } from './ui/button';
 import { EmptyState } from './ui/empty-state';
+import { useFeedSubscription } from '@/hooks/use-feed-subscription';
 import type { FeedAchievement, FeedReaction, FeedResponse } from '@/lib/types';
 
 interface FeedListProps {
   initialData: FeedResponse;
+  currentMemberId: string;
+  season: number;
 }
 
-export function FeedList({ initialData }: FeedListProps) {
+export function FeedList({ initialData, currentMemberId, season }: FeedListProps) {
   const [achievements, setAchievements] = useState<FeedAchievement[]>(initialData.achievements);
   const [cursor, setCursor] = useState<string | null>(initialData.nextCursor);
   const [hasMore, setHasMore] = useState(initialData.hasMore);
@@ -38,6 +41,24 @@ export function FeedList({ initialData }: FeedListProps) {
   const handleReactionUpdate = useCallback((achievementId: string, reactions: FeedReaction[]) => {
     setAchievements((prev) => prev.map((a) => (a.id === achievementId ? { ...a, reactions } : a)));
   }, []);
+
+  const handleNewAchievement = useCallback((achievement: FeedAchievement) => {
+    setAchievements((prev) => {
+      // Avoid duplicates
+      if (prev.some((a) => a.id === achievement.id)) {
+        return prev;
+      }
+      return [achievement, ...prev];
+    });
+  }, []);
+
+  // Subscribe to real-time updates
+  useFeedSubscription({
+    currentMemberId,
+    season,
+    onNewAchievement: handleNewAchievement,
+    onReactionUpdate: handleReactionUpdate,
+  });
 
   if (achievements.length === 0) {
     return (
