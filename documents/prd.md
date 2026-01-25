@@ -25,12 +25,14 @@ Transform a single intimidating goal into a series of celebratory moments. Every
 ## Goals
 
 ### User Goals
+
 - See clear progress toward the 10km sub-40 goal
 - Celebrate incremental achievements along the way
 - Stay motivated by seeing groupmates' progress
 - Hype each other up through reactions
 
 ### Business Goals (v1)
+
 - Functional MVP that the group actively uses
 - Seamless Strava integration
 - Zero friction onboarding
@@ -41,24 +43,24 @@ Transform a single intimidating goal into a series of celebratory moments. Every
 
 ### v1 (MVP)
 
-| Feature | Description |
-|---------|-------------|
-| Strava Authentication | Sign in with Strava - no separate account needed |
-| Milestone Tracking | 5 core milestones automatically detected from Strava data |
-| Activity Feed | Chronological feed of achievements across the group |
-| Leaderboard | Shows milestone progress for all members |
-| Reactions | Members can react to achievements (🎉, 🔥, etc.) |
-| Recent Activity | Shows user's last synced run on profile for sync visibility |
-| Auto Seasons | Challenge period auto-resets each calendar year |
-| PWA | Installable on mobile, works offline for viewing |
+| Feature               | Description                                                 |
+| --------------------- | ----------------------------------------------------------- |
+| Strava Authentication | Sign in with Strava - no separate account needed            |
+| Milestone Tracking    | 5 core milestones automatically detected from Strava data   |
+| Activity Feed         | Chronological feed of achievements across the group         |
+| Leaderboard           | Shows milestone progress for all members                    |
+| Reactions             | Members can react to achievements (🎉, 🔥, etc.)            |
+| Recent Activity       | Shows user's last synced run on profile for sync visibility |
+| Auto Seasons          | Challenge period auto-resets each calendar year             |
+| PWA                   | Installable on mobile, works offline for viewing            |
 
 ### v2 (Future)
 
-| Feature | Description |
-|---------|-------------|
-| Push Notifications | Alerts when groupmates unlock achievements |
-| Past Seasons | View achievement history from previous years |
-| Additional Achievements | Consistency streaks, volume milestones, PBs |
+| Feature                 | Description                                  |
+| ----------------------- | -------------------------------------------- |
+| Push Notifications      | Alerts when groupmates unlock achievements   |
+| Past Seasons            | View achievement history from previous years |
+| Additional Achievements | Consistency streaks, volume milestones, PBs  |
 
 ---
 
@@ -67,12 +69,12 @@ Transform a single intimidating goal into a series of celebratory moments. Every
 All milestones are based on the target pace of 4:00/km.
 
 | Milestone | Distance | Target Time |
-|-----------|----------|-------------|
-| 🥉 | 1km | 4:00 |
-| 🥈 | 2km | 8:00 |
-| 🥇 | 5km | 20:00 |
-| 🏅 | 7.5km | 30:00 |
-| 🏆 | 10km | 40:00 |
+| --------- | -------- | ----------- |
+| 🥉        | 1km      | 4:00        |
+| 🥈        | 2km      | 8:00        |
+| 🥇        | 5km      | 20:00       |
+| 🏅        | 7.5km    | 30:00       |
+| 🏆        | 10km     | 40:00       |
 
 ### Achievement Logic
 
@@ -155,6 +157,7 @@ S40G
 ## Technical Reference
 
 For implementation details including:
+
 - System architecture and tech stack
 - Database schema and data models
 - API endpoints and request/response schemas
@@ -169,6 +172,7 @@ See the **[Technical Design Document](./s40g-technical-design.md)**.
 ## UI/UX Requirements
 
 ### Design Principles
+
 - Mobile-first, responsive
 - Fast, minimal taps to core actions
 - Celebratory feel when milestones are hit
@@ -177,17 +181,20 @@ See the **[Technical Design Document](./s40g-technical-design.md)**.
 ### Key Screens
 
 **Activity Feed**
+
 - Card-based list
 - Each card shows: member photo, name, milestone, actual time, timestamp
 - Reaction buttons below each card
 - Pull to refresh
 
 **Leaderboard**
+
 - Ranked list of all members
 - Show milestone progress as icons (filled = unlocked)
 - Current user highlighted
 
 **Profile**
+
 - User's own milestone grid
 - Locked milestones shown greyed out with target time
 - Unlocked milestones show actual achieved time
@@ -200,6 +207,7 @@ See the **[Technical Design Document](./s40g-technical-design.md)**.
 - Helps users verify their runs are being processed
 
 ### PWA Requirements
+
 - Service worker for offline viewing
 - Web app manifest with S40G icon
 - Add to home screen prompt
@@ -209,12 +217,12 @@ See the **[Technical Design Document](./s40g-technical-design.md)**.
 
 ## Success Metrics
 
-| Metric | Target |
-|--------|--------|
-| Members onboarded | 100% of running group |
-| Weekly active users | >80% of members |
-| Milestones unlocked (season) | Increasing trend |
-| Reactions per achievement | >2 average |
+| Metric                       | Target                |
+| ---------------------------- | --------------------- |
+| Members onboarded            | 100% of running group |
+| Weekly active users          | >80% of members       |
+| Milestones unlocked (season) | Increasing trend      |
+| Reactions per achievement    | >2 average            |
 
 ---
 
@@ -228,13 +236,13 @@ See the **[Technical Design Document](./s40g-technical-design.md)**.
 
 ## Timeline Estimate
 
-| Phase | Duration | Deliverable |
-|-------|----------|-------------|
-| Setup | 1 week | Project scaffold, Strava OAuth working |
-| Core | 2 weeks | Milestone tracking, database, webhooks |
-| Social | 1 week | Feed, leaderboard, reactions |
-| Polish | 1 week | PWA setup, UI refinement, testing |
-| **Total** | **5 weeks** | MVP ready for group |
+| Phase     | Duration    | Deliverable                            |
+| --------- | ----------- | -------------------------------------- |
+| Setup     | 1 week      | Project scaffold, Strava OAuth working |
+| Core      | 2 weeks     | Milestone tracking, database, webhooks |
+| Social    | 1 week      | Feed, leaderboard, reactions           |
+| Polish    | 1 week      | PWA setup, UI refinement, testing      |
+| **Total** | **5 weeks** | MVP ready for group                    |
 
 ---
 

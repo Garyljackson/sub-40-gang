@@ -143,38 +143,38 @@ The webhook from Strava only contains the activity ID, not the full activity dat
 
 ### Core Technologies
 
-| Layer | Technology | Version | Justification |
-|-------|------------|---------|---------------|
-| Framework | Next.js | 16.x | App Router, Turbopack (stable), Cache Components, excellent DX |
-| Language | TypeScript | 5.9.x | Type safety, better IDE support, fewer runtime errors |
-| Database | PostgreSQL (Supabase) | 15.x | Relational data, realtime subscriptions, Row Level Security |
-| Styling | Tailwind CSS | 4.x | Utility-first, mobile-first, CSS-native configuration, 5x faster builds |
-| Hosting | Vercel | - | Zero-config Next.js deploys, edge functions, analytics |
+| Layer     | Technology            | Version | Justification                                                           |
+| --------- | --------------------- | ------- | ----------------------------------------------------------------------- |
+| Framework | Next.js               | 16.x    | App Router, Turbopack (stable), Cache Components, excellent DX          |
+| Language  | TypeScript            | 5.9.x   | Type safety, better IDE support, fewer runtime errors                   |
+| Database  | PostgreSQL (Supabase) | 15.x    | Relational data, realtime subscriptions, Row Level Security             |
+| Styling   | Tailwind CSS          | 4.x     | Utility-first, mobile-first, CSS-native configuration, 5x faster builds |
+| Hosting   | Vercel                | -       | Zero-config Next.js deploys, edge functions, analytics                  |
 
 ### Key Libraries
 
-| Purpose | Library | Version |
-|---------|---------|---------|
-| Database Client | @supabase/supabase-js | ^2.90.x |
-| Date Handling | date-fns | ^4.x |
-| Schema Validation | zod | ^4.x |
-| HTTP Client | fetch (native) | - |
-| Icons | lucide-react | ^0.562.x |
-| Testing | vitest | ^4.x |
-| E2E Testing | Playwright | ^1.57.x |
-| API Mocking | msw | ^2.x |
+| Purpose           | Library               | Version  |
+| ----------------- | --------------------- | -------- |
+| Database Client   | @supabase/supabase-js | ^2.90.x  |
+| Date Handling     | date-fns              | ^4.x     |
+| Schema Validation | zod                   | ^4.x     |
+| HTTP Client       | fetch (native)        | -        |
+| Icons             | lucide-react          | ^0.562.x |
+| Testing           | vitest                | ^4.x     |
+| E2E Testing       | Playwright            | ^1.57.x  |
+| API Mocking       | msw                   | ^2.x     |
 
 ### Development Tools
 
-| Purpose | Tool | Version |
-|---------|------|---------|
-| Package Manager | pnpm | 9.x |
-| Local Database | Supabase CLI | ^2.72.x |
-| Linting | ESLint | 9.x |
-| Formatting | Prettier | 3.x |
-| Git Hooks | Husky + lint-staged | - |
-| Type Checking | TypeScript | 5.9.x |
-| API Mocking | MSW (Mock Service Worker) | 2.x |
+| Purpose         | Tool                      | Version |
+| --------------- | ------------------------- | ------- |
+| Package Manager | pnpm                      | 9.x     |
+| Local Database  | Supabase CLI              | ^2.72.x |
+| Linting         | ESLint                    | 9.x     |
+| Formatting      | Prettier                  | 3.x     |
+| Git Hooks       | Husky + lint-staged       | -       |
+| Type Checking   | TypeScript                | 5.9.x   |
+| API Mocking     | MSW (Mock Service Worker) | 2.x     |
 
 ### Local Development with Supabase CLI
 
@@ -205,12 +205,12 @@ First run downloads Docker images (~2-3 minutes). Subsequent starts are fast.
 
 Once running, you get:
 
-| Service | URL | Description |
-|---------|-----|-------------|
-| API | http://localhost:54321 | PostgREST API |
+| Service  | URL                                                     | Description            |
+| -------- | ------------------------------------------------------- | ---------------------- |
+| API      | http://localhost:54321                                  | PostgREST API          |
 | Database | postgresql://postgres:postgres@localhost:54322/postgres | Direct Postgres access |
-| Studio | http://localhost:54323 | Web-based database GUI |
-| Inbucket | http://localhost:54324 | Local email testing |
+| Studio   | http://localhost:54323                                  | Web-based database GUI |
+| Inbucket | http://localhost:54324                                  | Local email testing    |
 
 #### Environment Variables (.env.local)
 
@@ -409,7 +409,7 @@ CREATE TABLE achievements (
     distance DECIMAL(10, 2) NOT NULL, -- actual distance in meters
     time_seconds INTEGER NOT NULL,    -- actual time in seconds
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    
+
     -- One achievement per milestone per member per season
     UNIQUE(member_id, milestone, season)
 );
@@ -421,7 +421,7 @@ CREATE TABLE reactions (
     member_id UUID NOT NULL REFERENCES members(id) ON DELETE CASCADE,
     emoji VARCHAR(10) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    
+
     -- One reaction per member per achievement
     UNIQUE(achievement_id, member_id)
 );
@@ -440,7 +440,7 @@ CREATE TABLE webhook_queue (
     error_message TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     processed_at TIMESTAMPTZ,
-    
+
     -- Prevent duplicate queue entries for same activity
     UNIQUE(strava_activity_id)
 );
@@ -457,7 +457,7 @@ CREATE TABLE processed_activities (
     pace_seconds_per_km INTEGER NOT NULL,  -- calculated: moving_time / (distance/1000)
     milestones_unlocked VARCHAR(50)[] DEFAULT '{}',  -- e.g., ['1km', '2km']
     processed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    
+
     -- One entry per activity
     UNIQUE(strava_activity_id)
 );
@@ -536,24 +536,24 @@ CREATE POLICY "Users can delete their own reactions"
 
 ### Endpoints Overview
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/api/auth/strava` | Initiate Strava OAuth | No |
-| GET | `/api/auth/strava/callback` | Handle OAuth callback | No |
-| POST | `/api/auth/logout` | Clear session | Yes |
-| GET | `/api/webhooks/strava` | Webhook verification | No |
-| POST | `/api/webhooks/strava` | Receive activity events (queues for async) | No* |
-| GET | `/api/cron/process-queue` | Process webhook queue (called by Vercel Cron) | Cron** |
-| GET | `/api/feed` | Get activity feed | Yes |
-| GET | `/api/leaderboard` | Get current season leaderboard | Yes |
-| GET | `/api/profile` | Get current user profile | Yes |
-| GET | `/api/profile/recent-activity` | Get user's most recent synced run | Yes |
-| GET | `/api/members/:id` | Get member profile | Yes |
-| POST | `/api/reactions` | Add reaction | Yes |
-| DELETE | `/api/reactions/:id` | Remove reaction | Yes |
+| Method | Endpoint                       | Description                                   | Auth     |
+| ------ | ------------------------------ | --------------------------------------------- | -------- |
+| GET    | `/api/auth/strava`             | Initiate Strava OAuth                         | No       |
+| GET    | `/api/auth/strava/callback`    | Handle OAuth callback                         | No       |
+| POST   | `/api/auth/logout`             | Clear session                                 | Yes      |
+| GET    | `/api/webhooks/strava`         | Webhook verification                          | No       |
+| POST   | `/api/webhooks/strava`         | Receive activity events (queues for async)    | No\*     |
+| GET    | `/api/cron/process-queue`      | Process webhook queue (called by Vercel Cron) | Cron\*\* |
+| GET    | `/api/feed`                    | Get activity feed                             | Yes      |
+| GET    | `/api/leaderboard`             | Get current season leaderboard                | Yes      |
+| GET    | `/api/profile`                 | Get current user profile                      | Yes      |
+| GET    | `/api/profile/recent-activity` | Get user's most recent synced run             | Yes      |
+| GET    | `/api/members/:id`             | Get member profile                            | Yes      |
+| POST   | `/api/reactions`               | Add reaction                                  | Yes      |
+| DELETE | `/api/reactions/:id`           | Remove reaction                               | Yes      |
 
-*Webhook endpoint uses Strava's verification token instead of user auth.
-**Cron endpoint is protected by `CRON_SECRET` environment variable.
+\*Webhook endpoint uses Strava's verification token instead of user auth.
+\*\*Cron endpoint is protected by `CRON_SECRET` environment variable.
 
 ### Request/Response Schemas
 
@@ -581,10 +581,10 @@ interface Achievement {
   };
   milestone: '1km' | '2km' | '5km' | '7.5km' | '10km';
   achievedAt: string; // ISO 8601
-  distance: number;   // meters
+  distance: number; // meters
   timeSeconds: number;
   reactions: Reaction[];
-  createdAt: string;  // ISO 8601
+  createdAt: string; // ISO 8601
 }
 
 interface Reaction {
@@ -625,19 +625,19 @@ interface LeaderboardMember {
 // GET /api/profile/recent-activity
 
 interface RecentActivityResponse {
-  activity: RecentActivity | null;  // null if no activities synced yet
+  activity: RecentActivity | null; // null if no activities synced yet
 }
 
 interface RecentActivity {
   id: string;
   stravaActivityId: string;
-  activityName: string;           // e.g., "Morning Run"
-  activityDate: string;           // ISO 8601
+  activityName: string; // e.g., "Morning Run"
+  activityDate: string; // ISO 8601
   distanceMeters: number;
   movingTimeSeconds: number;
-  paceSecondsPerKm: number;       // calculated pace
-  milestonesUnlocked: string[];   // e.g., ['1km', '2km'] or []
-  processedAt: string;            // ISO 8601 - when S40G processed it
+  paceSecondsPerKm: number; // calculated pace
+  milestonesUnlocked: string[]; // e.g., ['1km', '2km'] or []
+  processedAt: string; // ISO 8601 - when S40G processed it
 }
 
 // Example response:
@@ -691,15 +691,15 @@ interface ApiError {
 
 Standard error codes:
 
-| HTTP Status | Code | Description |
-|-------------|------|-------------|
-| 400 | `BAD_REQUEST` | Invalid request body or parameters |
-| 401 | `UNAUTHORIZED` | Missing or invalid authentication |
-| 403 | `FORBIDDEN` | User lacks permission |
-| 404 | `NOT_FOUND` | Resource not found |
-| 409 | `CONFLICT` | Resource already exists |
-| 429 | `RATE_LIMITED` | Too many requests |
-| 500 | `INTERNAL_ERROR` | Unexpected server error |
+| HTTP Status | Code             | Description                        |
+| ----------- | ---------------- | ---------------------------------- |
+| 400         | `BAD_REQUEST`    | Invalid request body or parameters |
+| 401         | `UNAUTHORIZED`   | Missing or invalid authentication  |
+| 403         | `FORBIDDEN`      | User lacks permission              |
+| 404         | `NOT_FOUND`      | Resource not found                 |
+| 409         | `CONFLICT`       | Resource already exists            |
+| 429         | `RATE_LIMITED`   | Too many requests                  |
+| 500         | `INTERNAL_ERROR` | Unexpected server error            |
 
 ---
 
@@ -716,6 +716,7 @@ Strava integration uses a **queue-based async processing pattern** for handling 
 5. **Fetch activity streams** → Requires token refresh and API calls to Strava
 
 This pattern is necessary because:
+
 - Strava webhooks don't include activity data, only IDs
 - We need to make additional API calls to fetch streams
 - Token refresh may be required if the user's token has expired
@@ -746,9 +747,7 @@ export async function GET() {
     scope: 'read,activity:read',
   });
 
-  return Response.redirect(
-    `https://www.strava.com/oauth/authorize?${params}`
-  );
+  return Response.redirect(`https://www.strava.com/oauth/authorize?${params}`);
 }
 ```
 
@@ -816,7 +815,7 @@ async function refreshStravaToken(member: Member): Promise<string> {
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  
+
   const mode = searchParams.get('hub.mode');
   const token = searchParams.get('hub.verify_token');
   const challenge = searchParams.get('hub.challenge');
@@ -839,9 +838,9 @@ The webhook handler must respond within 2 seconds. Since Strava webhooks only co
 interface StravaWebhookEvent {
   aspect_type: 'create' | 'update' | 'delete';
   event_time: number;
-  object_id: number;      // Activity ID
+  object_id: number; // Activity ID
   object_type: 'activity' | 'athlete';
-  owner_id: number;       // Athlete ID
+  owner_id: number; // Athlete ID
   subscription_id: number;
   updates?: Record<string, unknown>;
 }
@@ -867,17 +866,18 @@ export async function POST(request: Request) {
   }
 
   // Queue for async processing (upsert to handle retries)
-  await supabase
-    .from('webhook_queue')
-    .upsert({
+  await supabase.from('webhook_queue').upsert(
+    {
       strava_activity_id: String(event.object_id),
       strava_athlete_id: String(event.owner_id),
       event_type: event.aspect_type,
       status: 'pending',
-    }, {
+    },
+    {
       onConflict: 'strava_activity_id',
       ignoreDuplicates: true,
-    });
+    }
+  );
 
   return Response.json({ received: true });
 }
@@ -961,10 +961,9 @@ async function processActivity(activityId: string, athleteId: string) {
   const accessToken = await refreshStravaToken(member);
 
   // 2. Fetch activity details
-  const activityResponse = await fetch(
-    `https://www.strava.com/api/v3/activities/${activityId}`,
-    { headers: { Authorization: `Bearer ${accessToken}` } }
-  );
+  const activityResponse = await fetch(`https://www.strava.com/api/v3/activities/${activityId}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
   const activity = await activityResponse.json();
 
   // Only process runs
@@ -998,10 +997,7 @@ interface StreamData {
   distance: { data: number[]; original_size: number };
 }
 
-async function fetchActivityStreams(
-  activityId: string,
-  accessToken: string
-): Promise<StreamData> {
+async function fetchActivityStreams(activityId: string, accessToken: string): Promise<StreamData> {
   const response = await fetch(
     `https://www.strava.com/api/v3/activities/${activityId}/streams?keys=time,distance&key_by_type=true`,
     {
@@ -1050,8 +1046,8 @@ export const APP_TIMEZONE = 'Australia/Brisbane';
 
 /**
  * Get the season (year) for a given date in Brisbane time.
- * 
- * Example: 
+ *
+ * Example:
  *   - 2026-12-31T23:30:00 Brisbane = season 2026
  *   - 2027-01-01T00:30:00 Brisbane = season 2027
  *   - 2026-12-31T14:00:00 UTC (= 2027-01-01T00:00 Brisbane) = season 2027
@@ -1062,7 +1058,7 @@ export function getSeasonForDate(date: Date): number {
     timeZone: APP_TIMEZONE,
     year: 'numeric',
   }).format(date);
-  
+
   return parseInt(brisbaneDate, 10);
 }
 
@@ -1089,7 +1085,7 @@ interface BestEffort {
 /**
  * Find the fastest segment of at least targetDistance meters
  * using a two-pointer sliding window approach.
- * 
+ *
  * Time complexity: O(n)
  * Space complexity: O(1)
  */
@@ -1119,10 +1115,7 @@ export function findBestEffort(
 
   for (let i = 0; i < distanceStream.length; i++) {
     // Move j forward until we have at least targetDistance
-    while (
-      j < distanceStream.length &&
-      distanceStream[j] - distanceStream[i] < targetDistance
-    ) {
+    while (j < distanceStream.length && distanceStream[j] - distanceStream[i] < targetDistance) {
       j++;
     }
 
@@ -1179,14 +1172,14 @@ export async function processActivity(
   memberId: string,
   activity: ActivityData
 ): Promise<NewAchievement[]> {
-  const { 
-    activityId, 
-    activityName, 
-    activityDate, 
-    distanceMeters, 
+  const {
+    activityId,
+    activityName,
+    activityDate,
+    distanceMeters,
     movingTimeSeconds,
-    timeStream, 
-    distanceStream 
+    timeStream,
+    distanceStream,
   } = activity;
 
   // Calculate season based on Brisbane time, not UTC
@@ -1200,9 +1193,7 @@ export async function processActivity(
     .eq('member_id', memberId)
     .eq('season', season);
 
-  const existingMilestones = new Set(
-    existingAchievements?.map((a) => a.milestone) ?? []
-  );
+  const existingMilestones = new Set(existingAchievements?.map((a) => a.milestone) ?? []);
 
   // Check each milestone
   for (const [key, config] of Object.entries(MILESTONES)) {
@@ -1214,11 +1205,7 @@ export async function processActivity(
     }
 
     // Find best effort for this distance
-    const bestEffort = findBestEffort(
-      timeStream,
-      distanceStream,
-      config.distance
-    );
+    const bestEffort = findBestEffort(timeStream, distanceStream, config.distance);
 
     // Check if it meets the target
     if (bestEffort && bestEffort.timeSeconds <= config.targetTime) {
@@ -1246,24 +1233,26 @@ export async function processActivity(
   }
 
   // Calculate pace (seconds per km)
-  const paceSecondsPerKm = distanceMeters > 0 
-    ? Math.round(movingTimeSeconds / (distanceMeters / 1000))
-    : 0;
+  const paceSecondsPerKm =
+    distanceMeters > 0 ? Math.round(movingTimeSeconds / (distanceMeters / 1000)) : 0;
 
   // Store in processed_activities for "last synced run" visibility
-  await supabase.from('processed_activities').upsert({
-    member_id: memberId,
-    strava_activity_id: activityId,
-    activity_name: activityName,
-    activity_date: activityDate.toISOString(),
-    distance_meters: distanceMeters,
-    moving_time_seconds: movingTimeSeconds,
-    pace_seconds_per_km: paceSecondsPerKm,
-    milestones_unlocked: newAchievements.map(a => a.milestone),
-    processed_at: new Date().toISOString(),
-  }, {
-    onConflict: 'strava_activity_id',
-  });
+  await supabase.from('processed_activities').upsert(
+    {
+      member_id: memberId,
+      strava_activity_id: activityId,
+      activity_name: activityName,
+      activity_date: activityDate.toISOString(),
+      distance_meters: distanceMeters,
+      moving_time_seconds: movingTimeSeconds,
+      pace_seconds_per_km: paceSecondsPerKm,
+      milestones_unlocked: newAchievements.map((a) => a.milestone),
+      processed_at: new Date().toISOString(),
+    },
+    {
+      onConflict: 'strava_activity_id',
+    }
+  );
 
   return newAchievements;
 }
@@ -1310,10 +1299,12 @@ export function useFeedSubscription(onNewAchievement: (achievement: Achievement)
           // Fetch full achievement with member data
           const { data } = await supabase
             .from('achievements')
-            .select(`
+            .select(
+              `
               *,
               member:members(id, name, profile_photo_url)
-            `)
+            `
+            )
             .eq('id', payload.new.id)
             .single();
 
@@ -1533,20 +1524,18 @@ const STATIC_ASSETS = [
 
 // Install: cache static assets
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
-  );
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS)));
   self.skipWaiting();
 });
 
 // Activate: clean old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
       )
-    )
   );
   self.clients.claim();
 });
@@ -1844,19 +1833,19 @@ export const FAST_5K_STREAMS = {
 
 // Simulates a 10km run with variable pace (fast middle section)
 export const VARIABLE_10K_STREAMS = {
-  time: { 
+  time: {
     data: [
-      ...Array.from({ length: 601 }, (_, i) => i),           // 0-600s: first 2.5km at 4:00/km
-      ...Array.from({ length: 481 }, (_, i) => 600 + i),     // 600-1080s: middle 2km at 4:00/km
+      ...Array.from({ length: 601 }, (_, i) => i), // 0-600s: first 2.5km at 4:00/km
+      ...Array.from({ length: 481 }, (_, i) => 600 + i), // 600-1080s: middle 2km at 4:00/km
       ...Array.from({ length: 601 }, (_, i) => 1080 + i * 1.2), // 1080-1800s: last 5.5km slower
-    ]
+    ],
   },
-  distance: { 
+  distance: {
     data: [
-      ...Array.from({ length: 601 }, (_, i) => i * 4.167),      // 2500m
-      ...Array.from({ length: 481 }, (_, i) => 2500 + i * 4.167), // 4500m  
-      ...Array.from({ length: 601 }, (_, i) => 4500 + i * 9.17),  // 10000m
-    ]
+      ...Array.from({ length: 601 }, (_, i) => i * 4.167), // 2500m
+      ...Array.from({ length: 481 }, (_, i) => 2500 + i * 4.167), // 4500m
+      ...Array.from({ length: 601 }, (_, i) => 4500 + i * 9.17), // 10000m
+    ],
   },
 };
 
@@ -1884,7 +1873,7 @@ describe('calculateAchievements', () => {
     );
 
     expect(achievements).toHaveLength(3); // 1km, 2km, 5km
-    expect(achievements.map(a => a.milestone)).toEqual(['1km', '2km', '5km']);
+    expect(achievements.map((a) => a.milestone)).toEqual(['1km', '2km', '5km']);
   });
 
   it('finds best segment in variable pace run', () => {
@@ -1895,7 +1884,7 @@ describe('calculateAchievements', () => {
     );
 
     // Should find the fast middle section for 2km milestone
-    const twoKm = achievements.find(a => a.milestone === '2km');
+    const twoKm = achievements.find((a) => a.milestone === '2km');
     expect(twoKm?.timeSeconds).toBeLessThanOrEqual(480); // Under 8 minutes
   });
 
@@ -1911,14 +1900,14 @@ describe('calculateAchievements', () => {
 
   it('skips already achieved milestones', () => {
     const existing = [{ milestone: '1km', season: 2026 }];
-    
+
     const achievements = calculateAchievements(
       FAST_5K_STREAMS.time.data,
       FAST_5K_STREAMS.distance.data,
       existing
     );
 
-    expect(achievements.map(a => a.milestone)).not.toContain('1km');
+    expect(achievements.map((a) => a.milestone)).not.toContain('1km');
   });
 });
 ```
@@ -2005,7 +1994,7 @@ Test webhook processing locally without actual Strava events.
 
 /**
  * Simulates a Strava webhook event for local testing.
- * 
+ *
  * Usage:
  *   pnpm tsx scripts/simulate-webhook.ts --activity 123456 --athlete 789
  *   pnpm tsx scripts/simulate-webhook.ts --type update --activity 123456
@@ -2072,11 +2061,11 @@ VALUES
   ('11111111-1111-1111-1111-111111111111', '5km', 2026, 'act-1003', '2026-01-10 08:00:00', 5000, 1185),
   ('11111111-1111-1111-1111-111111111111', '7.5km', 2026, 'act-1004', '2026-01-15 08:00:00', 7500, 1780),
   ('11111111-1111-1111-1111-111111111111', '10km', 2026, 'act-1005', '2026-01-20 08:00:00', 10000, 2380),
-  
+
   -- Bob: Partial progress
   ('22222222-2222-2222-2222-222222222222', '1km', 2026, 'act-2001', '2026-01-06 09:00:00', 1000, 238),
   ('22222222-2222-2222-2222-222222222222', '2km', 2026, 'act-2002', '2026-01-10 09:00:00', 2000, 478),
-  
+
   -- Charlie: Just started
   ('33333333-3333-3333-3333-333333333333', '1km', 2026, 'act-3001', '2026-01-12 07:00:00', 1000, 239);
 
@@ -2101,7 +2090,7 @@ For testing with real activity stream data, create synthetic GPX files with fast
 /**
  * Generates a GPX file with a specified pace for testing.
  * The GPX can be uploaded to a test Strava account.
- * 
+ *
  * Usage:
  *   pnpm tsx scripts/generate-test-gpx.ts --distance 5000 --pace 3.9 --output test-5k.gpx
  */
@@ -2109,32 +2098,32 @@ For testing with real activity stream data, create synthetic GPX files with fast
 function generateGPX(distanceMeters: number, paceMinPerKm: number): string {
   const totalSeconds = (distanceMeters / 1000) * paceMinPerKm * 60;
   const points: string[] = [];
-  
+
   // Brisbane starting point
   const startLat = -27.4698;
   const startLon = 153.0251;
   const startTime = new Date('2026-01-15T07:00:00Z');
-  
+
   // Generate points every 10 meters
   for (let d = 0; d <= distanceMeters; d += 10) {
     const fraction = d / distanceMeters;
     const elapsed = fraction * totalSeconds;
     const time = new Date(startTime.getTime() + elapsed * 1000);
-    
+
     // Simple linear path (east-west)
     const lat = startLat;
-    const lon = startLon + (d / 111000); // ~111km per degree longitude
-    
+    const lon = startLon + d / 111000; // ~111km per degree longitude
+
     points.push(`
       <trkpt lat="${lat.toFixed(6)}" lon="${lon.toFixed(6)}">
         <time>${time.toISOString()}</time>
       </trkpt>`);
   }
-  
+
   return `<?xml version="1.0" encoding="UTF-8"?>
 <gpx version="1.1" creator="S40G Test Generator">
   <trk>
-    <name>Test Run - ${distanceMeters/1000}km @ ${paceMinPerKm}:00/km</name>
+    <name>Test Run - ${distanceMeters / 1000}km @ ${paceMinPerKm}:00/km</name>
     <type>running</type>
     <trkseg>${points.join('')}
     </trkseg>
@@ -2150,17 +2139,17 @@ console.log('Generated test-10k-fast.gpx');
 
 #### Testing Checklist
 
-| Test Type | What It Tests | Needs Strava? | Needs DB? |
-|-----------|--------------|---------------|-----------|
-| Unit: best-effort algorithm | Sliding window logic | No | No |
-| Unit: milestone calculations | Achievement detection | No | No |
-| Unit: token refresh logic | OAuth token handling | No (mocked) | No |
-| Integration: webhook handler | Queue insertion | No (mocked) | Yes (local) |
-| Integration: queue processor | Full processing flow | No (mocked) | Yes (local) |
-| E2E: feed display | UI rendering | No | Yes (seeded) |
-| E2E: leaderboard | Ranking display | No | Yes (seeded) |
-| Manual: OAuth flow | Real Strava login | Yes | Yes |
-| Manual: webhook delivery | Real activity processing | Yes | Yes |
+| Test Type                    | What It Tests            | Needs Strava? | Needs DB?    |
+| ---------------------------- | ------------------------ | ------------- | ------------ |
+| Unit: best-effort algorithm  | Sliding window logic     | No            | No           |
+| Unit: milestone calculations | Achievement detection    | No            | No           |
+| Unit: token refresh logic    | OAuth token handling     | No (mocked)   | No           |
+| Integration: webhook handler | Queue insertion          | No (mocked)   | Yes (local)  |
+| Integration: queue processor | Full processing flow     | No (mocked)   | Yes (local)  |
+| E2E: feed display            | UI rendering             | No            | Yes (seeded) |
+| E2E: leaderboard             | Ranking display          | No            | Yes (seeded) |
+| Manual: OAuth flow           | Real Strava login        | Yes           | Yes          |
+| Manual: webhook delivery     | Real activity processing | Yes           | Yes          |
 
 **Recommendation**: Use unit tests with fixtures for 90% of Strava logic testing. Only use real Strava API for final manual integration testing before deployment.
 
@@ -2389,6 +2378,7 @@ module.exports = {
 ```
 
 **Note:** Vercel's free tier (Hobby) includes 2 cron jobs, which is exactly what we need:
+
 1. `process-queue` - Runs every minute to process webhook events
 2. `token-refresh` - Runs every 6 hours to proactively refresh Strava tokens
 

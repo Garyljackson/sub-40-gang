@@ -3,17 +3,20 @@
 ## Phase 1: Project Setup
 
 ### 1.1 Initialize Next.js Project
+
 - [ ] **Create Next.js 16.x project with TypeScript**
   - Use `create-next-app` with App Router and Turbopack
   - Configure TypeScript 5.9.x in strict mode
   - Set up path aliases (`@/*`)
 
 ### 1.2 Configure Package Manager
+
 - [ ] **Set up pnpm workspace**
   - Create `.npmrc` with pnpm configuration
   - Add `packageManager` field to `package.json`
 
 ### 1.3 Configure Code Quality Tools
+
 - [ ] **Set up ESLint 9.x with flat config**
   - Install ESLint and TypeScript ESLint plugins
   - Configure React and Next.js rules
@@ -34,12 +37,14 @@
   - Add commit-msg hook for message validation
 
 ### 1.4 Configure Tailwind CSS
+
 - [ ] **Set up Tailwind CSS 4.x**
   - Install Tailwind and configure for Next.js
   - Create base styles in `globals.css`
   - Configure mobile-first breakpoints
 
 ### 1.5 Environment Configuration
+
 - [ ] **Create environment file templates**
   - Create `.env.example` with all required variables
   - Add `.env.local` to `.gitignore`
@@ -50,6 +55,7 @@
 ## Phase 2: Database & Infrastructure
 
 ### 2.1 Supabase Setup
+
 - [ ] **Initialize Supabase CLI**
   - Run `pnpm supabase init` to create supabase folder
   - Configure `supabase/config.toml` for local development
@@ -59,6 +65,7 @@
   - Add db:diff, db:push, db:types scripts
 
 ### 2.2 Database Schema
+
 - [ ] **Create initial migration for core tables**
   - Create `members` table with Strava OAuth fields
   - Create `achievements` table with milestone tracking
@@ -81,17 +88,20 @@
   - Apply trigger to members table
 
 ### 2.3 Type Generation
+
 - [ ] **Generate TypeScript types from schema**
   - Run db:types to generate `lib/database.types.ts`
   - Verify types are correctly generated
 
 ### 2.4 Supabase Client
+
 - [ ] **Create Supabase client utilities**
   - Create `lib/supabase.ts` for browser client
   - Create server-side client with service role key
   - Add proper TypeScript typing
 
 ### 2.5 Database Seeding
+
 - [ ] **Create seed data for development**
   - Add test members to `supabase/seed.sql`
   - Add sample achievements for leaderboard testing
@@ -102,6 +112,7 @@
 ## Phase 3: Strava Integration
 
 ### 3.1 OAuth Implementation
+
 - [ ] **Create Strava OAuth initiation endpoint**
   - Create `app/api/auth/strava/route.ts`
   - Build authorization URL with required scopes
@@ -119,6 +130,7 @@
   - Redirect to home page
 
 ### 3.2 Session Management
+
 - [ ] **Implement JWT session handling**
   - Create `lib/auth.ts` with session utilities
   - Implement createSession, getSession, clearSession
@@ -129,12 +141,14 @@
   - Return 401 for unauthenticated requests
 
 ### 3.3 Token Management
+
 - [ ] **Implement Strava token refresh**
   - Create `lib/strava.ts` with token refresh logic
   - Check token expiration with buffer
   - Update tokens in database after refresh
 
 ### 3.4 Webhook Setup
+
 - [ ] **Create webhook verification endpoint**
   - Handle GET requests for Strava subscription verification
   - Validate verify token from environment
@@ -147,6 +161,7 @@
   - Respond within 2 seconds
 
 ### 3.5 Queue Processing
+
 - [ ] **Create cron job for queue processing**
   - Create `app/api/cron/process-queue/route.ts`
   - Protect with CRON_SECRET header
@@ -160,6 +175,7 @@
   - Check activity date against join date
 
 ### 3.6 Achievement Calculation
+
 - [ ] **Create milestone configuration**
   - Create `lib/milestones.ts` with distance/time targets
   - Define all 5 milestones (1km, 2km, 5km, 7.5km, 10km)
@@ -185,6 +201,7 @@
 ## Phase 4: Core Features
 
 ### 4.1 Activity Feed
+
 - [ ] **Create feed API endpoint**
   - Create `app/api/feed/route.ts`
   - Return paginated achievements with member data
@@ -201,6 +218,7 @@
   - Include reaction buttons
 
 ### 4.2 Leaderboard
+
 - [ ] **Create leaderboard API endpoint**
   - Create `app/api/leaderboard/route.ts`
   - Aggregate achievements by member for current season
@@ -213,6 +231,7 @@
   - Highlight current user
 
 ### 4.3 Profile
+
 - [ ] **Create profile API endpoint**
   - Create `app/api/profile/route.ts`
   - Return current user's milestone status
@@ -229,6 +248,7 @@
   - Show last synced run card
 
 ### 4.4 Navigation
+
 - [ ] **Create app layout with navigation**
   - Create `app/(app)/layout.tsx`
   - Add bottom navigation bar
@@ -244,6 +264,7 @@
 ## Phase 5: Social Features
 
 ### 5.1 Reactions
+
 - [ ] **Create reactions API endpoints**
   - Create POST `app/api/reactions/route.ts` for adding
   - Create DELETE `app/api/reactions/[id]/route.ts` for removing
@@ -255,6 +276,7 @@
   - Toggle own reaction on click
 
 ### 5.2 Real-time Updates
+
 - [ ] **Set up Supabase Realtime**
   - Enable realtime for achievements table
   - Enable realtime for reactions table
@@ -269,6 +291,7 @@
 ## Phase 6: PWA & Polish
 
 ### 6.1 PWA Setup
+
 - [ ] **Create web app manifest**
   - Create `public/manifest.json`
   - Configure app name, icons, colors
@@ -288,6 +311,7 @@
   - Handle updates gracefully
 
 ### 6.2 Install Prompt
+
 - [ ] **Create install prompt hook**
   - Create `hooks/use-install-prompt.ts`
   - Capture beforeinstallprompt event
@@ -298,6 +322,7 @@
   - Include "Add to Home Screen" messaging
 
 ### 6.3 UI Polish
+
 - [ ] **Add loading states**
   - Create skeleton components for feed
   - Add loading spinners for actions
@@ -315,6 +340,7 @@
 ## Phase 7: Testing
 
 ### 7.1 Test Infrastructure
+
 - [ ] **Set up Vitest**
   - Install Vitest and configure for Next.js
   - Create `vitest.config.ts`
@@ -331,6 +357,7 @@
   - Include fast, slow, and variable pace runs
 
 ### 7.2 Unit Tests
+
 - [ ] **Test sliding window algorithm**
   - Test with various stream lengths
   - Test edge cases (empty, short runs)
@@ -345,6 +372,7 @@
   - Test skipping already achieved milestones
 
 ### 7.3 Integration Tests
+
 - [ ] **Test API endpoints**
   - Test feed endpoint with pagination
   - Test leaderboard aggregation
@@ -355,6 +383,7 @@
   - Test activity processing flow
 
 ### 7.4 E2E Tests
+
 - [ ] **Set up Playwright**
   - Install Playwright and configure
   - Create `playwright.config.ts`
@@ -373,6 +402,7 @@
 ## Phase 8: Deployment
 
 ### 8.1 Vercel Configuration
+
 - [ ] **Create Vercel configuration**
   - Create `vercel.json` with cron jobs
   - Configure build and install commands
@@ -384,12 +414,14 @@
   - Configure Strava production credentials
 
 ### 8.2 CI/CD
+
 - [ ] **Create GitHub Actions workflow**
   - Create `.github/workflows/ci.yml`
   - Run lint, typecheck, and tests on PR
   - Upload test coverage to Codecov
 
 ### 8.3 Production Setup
+
 - [ ] **Set up production Supabase project**
   - Create Supabase project
   - Link local project to remote
@@ -404,6 +436,7 @@
   - Verify HTTPS enforcement
 
 ### 8.4 Monitoring
+
 - [ ] **Create health check endpoint**
   - Create `app/api/health/route.ts`
   - Check database connectivity
@@ -417,14 +450,14 @@
 
 ## Progress Summary
 
-| Phase | Tasks | Completed |
-|-------|-------|-----------|
-| 1. Project Setup | 8 | 0 |
-| 2. Database & Infrastructure | 9 | 0 |
-| 3. Strava Integration | 14 | 0 |
-| 4. Core Features | 10 | 0 |
-| 5. Social Features | 4 | 0 |
-| 6. PWA & Polish | 9 | 0 |
-| 7. Testing | 11 | 0 |
-| 8. Deployment | 8 | 0 |
-| **Total** | **73** | **0** |
+| Phase                        | Tasks  | Completed |
+| ---------------------------- | ------ | --------- |
+| 1. Project Setup             | 8      | 0         |
+| 2. Database & Infrastructure | 9      | 0         |
+| 3. Strava Integration        | 14     | 0         |
+| 4. Core Features             | 10     | 0         |
+| 5. Social Features           | 4      | 0         |
+| 6. PWA & Polish              | 9      | 0         |
+| 7. Testing                   | 11     | 0         |
+| 8. Deployment                | 8      | 0         |
+| **Total**                    | **73** | **0**     |

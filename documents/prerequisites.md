@@ -35,15 +35,19 @@ If any command fails or shows the wrong version, follow the installation instruc
 ## 1. WSL (Windows Subsystem for Linux)
 
 ### What is it?
+
 WSL lets you run a Linux environment directly on Windows. We'll use Ubuntu.
 
 ### Check if installed
+
 Open **PowerShell** (not WSL) and run:
+
 ```powershell
 wsl --version
 ```
 
 You should see output like:
+
 ```
 WSL version: 2.x.x.x
 Kernel version: 5.15.x.x
@@ -51,7 +55,9 @@ Kernel version: 5.15.x.x
 ```
 
 ### Install if needed
+
 In **PowerShell as Administrator**:
+
 ```powershell
 wsl --install -d Ubuntu
 ```
@@ -59,9 +65,11 @@ wsl --install -d Ubuntu
 Restart your computer when prompted, then open "Ubuntu" from the Start menu to complete setup (create username/password).
 
 ### Verify
+
 ```powershell
 wsl --list --verbose
 ```
+
 Should show Ubuntu with VERSION 2.
 
 ---
@@ -69,25 +77,31 @@ Should show Ubuntu with VERSION 2.
 ## 2. Docker Desktop
 
 ### What is it?
+
 Docker runs containers. Required for the **Supabase local emulator** which runs Postgres, Auth, Realtime, and Studio in containers on your machine.
 
 ### Check if installed
+
 In your **WSL terminal**:
+
 ```bash
 docker --version
 ```
 
 Expected output:
+
 ```
 Docker version 27.x.x, build xxxxxxx
 ```
 
 Also verify Docker Compose:
+
 ```bash
 docker compose version
 ```
 
 Expected output:
+
 ```
 Docker Compose version v2.x.x
 ```
@@ -106,6 +120,7 @@ Docker Compose version v2.x.x
    - Enable integration with your Ubuntu distro
 
 4. Restart WSL:
+
    ```powershell
    # In PowerShell
    wsl --shutdown
@@ -117,7 +132,9 @@ Docker Compose version v2.x.x
    ```
 
 ### Troubleshooting
+
 If `docker` command not found in WSL:
+
 - Ensure Docker Desktop is running (check system tray)
 - Check WSL integration is enabled in Docker Desktop settings
 - Restart WSL with `wsl --shutdown` in PowerShell
@@ -127,37 +144,45 @@ If `docker` command not found in WSL:
 ## 3. Node.js (v22 LTS)
 
 ### What is it?
+
 JavaScript runtime. Required for Next.js and the Supabase CLI.
 
 ### Check if installed
+
 ```bash
 node --version
 ```
 
 Expected output:
+
 ```
 v22.x.x
 ```
 
 Also check npm (comes with Node):
+
 ```bash
 npm --version
 ```
 
 ### Install if needed
+
 We recommend using **nvm** (Node Version Manager) for easy version management.
 
 #### Install nvm
+
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
 ```
 
 Close and reopen your terminal, then verify:
+
 ```bash
 nvm --version
 ```
 
 #### Install Node.js 22 LTS
+
 ```bash
 nvm install 22
 nvm use 22
@@ -165,6 +190,7 @@ nvm alias default 22
 ```
 
 #### Verify
+
 ```bash
 node --version   # v22.x.x
 npm --version    # 10.x.x
@@ -175,31 +201,38 @@ npm --version    # 10.x.x
 ## 4. pnpm (v9)
 
 ### What is it?
+
 Fast, disk-efficient package manager. Better than npm for monorepos and caching.
 
 ### Check if installed
+
 ```bash
 pnpm --version
 ```
 
 Expected output:
+
 ```
 9.x.x
 ```
 
 ### Install if needed
+
 With Node.js already installed:
+
 ```bash
 corepack enable
 corepack prepare pnpm@latest --activate
 ```
 
 Or install directly:
+
 ```bash
 npm install -g pnpm
 ```
 
 #### Verify
+
 ```bash
 pnpm --version
 ```
@@ -209,32 +242,39 @@ pnpm --version
 ## 5. Git
 
 ### What is it?
+
 Version control. Required for cloning the repo and managing code.
 
 ### Check if installed
+
 ```bash
 git --version
 ```
 
 Expected output:
+
 ```
 git version 2.x.x
 ```
 
 ### Install if needed
+
 ```bash
 sudo apt update
 sudo apt install git
 ```
 
 ### Configure Git
+
 Set your identity (use the email associated with your GitHub account):
+
 ```bash
 git config --global user.name "Your Name"
 git config --global user.email "you@example.com"
 ```
 
 Verify:
+
 ```bash
 git config --list
 ```
@@ -244,9 +284,11 @@ git config --list
 ## 6. Supabase CLI
 
 ### What is it?
+
 Runs the full Supabase stack locally (Postgres, Auth, Realtime, Studio) via Docker. Also handles migrations and type generation.
 
 ### How it's installed
+
 The Supabase CLI is installed as a **project dev dependency** - you don't need to install it globally. It comes with `pnpm install`:
 
 ```json
@@ -259,24 +301,30 @@ The Supabase CLI is installed as a **project dev dependency** - you don't need t
 ```
 
 ### Check if working (after project setup)
+
 After running `pnpm install` in the project:
+
 ```bash
 pnpm supabase --version
 ```
 
 Expected output:
+
 ```
 2.72.x Supabase CLI
 ```
 
 ### Verify Docker integration
+
 The CLI needs Docker running to start the local stack:
+
 ```bash
 # Make sure Docker Desktop is running, then:
 pnpm supabase start
 ```
 
 First run downloads images (~2-3 minutes). You should see:
+
 ```
 Started supabase local development setup.
 
@@ -292,6 +340,7 @@ service_role key: eyJhbG...
 ### Troubleshooting
 
 **"Cannot connect to Docker daemon"**
+
 - Make sure Docker Desktop is running
 - Check WSL integration is enabled in Docker Desktop settings
 - Restart WSL: `wsl --shutdown` (in PowerShell)
@@ -304,10 +353,13 @@ If you see port binding errors, something else is using those ports. Either stop
 ## 7. VS Code with WSL Extension
 
 ### What is it?
+
 Code editor with excellent WSL integration. Opens files directly in your Linux environment.
 
 ### Check if installed
+
 In WSL terminal:
+
 ```bash
 code --version
 ```
@@ -337,7 +389,9 @@ If it opens VS Code or shows a version number, you're set.
    ```
 
 ### Recommended Extensions
+
 Once connected to WSL, install these extensions (they'll install in WSL context):
+
 - ESLint
 - Prettier
 - Tailwind CSS IntelliSense
@@ -348,10 +402,13 @@ Once connected to WSL, install these extensions (they'll install in WSL context)
 ## 8. Strava API Application
 
 ### What is it?
+
 You need Strava API credentials to test OAuth and webhook integration.
 
 ### Check if set up
+
 You should have:
+
 - Client ID
 - Client Secret
 - Webhook Verify Token (you create this)
@@ -380,7 +437,9 @@ You should have:
    (You'll use this later when registering the webhook)
 
 ### Store credentials
+
 You'll add these to `.env.local` during project setup:
+
 ```bash
 STRAVA_CLIENT_ID=your-client-id
 STRAVA_CLIENT_SECRET=your-client-secret
@@ -394,6 +453,7 @@ STRAVA_VERIFY_TOKEN=s40g-webhook-verify-token-abc123
 ## 9. GitHub Account & SSH Key (Optional but Recommended)
 
 ### Check if SSH is set up
+
 ```bash
 ssh -T git@github.com
 ```
@@ -401,6 +461,7 @@ ssh -T git@github.com
 If you see "Hi username!", you're good.
 
 ### Set up SSH key
+
 ```bash
 # Generate key
 ssh-keygen -t ed25519 -C "your_email@example.com"
@@ -422,16 +483,16 @@ https://github.com/settings/keys
 
 ## Summary
 
-| Tool | Version | Command to Check |
-|------|---------|------------------|
-| WSL | 2.x | `wsl --version` (in PowerShell) |
-| Docker | 27.x | `docker --version` |
-| Docker Compose | 2.x | `docker compose version` |
-| Node.js | 22.x | `node --version` |
-| pnpm | 9.x | `pnpm --version` |
-| Git | 2.x | `git --version` |
-| Supabase CLI | 2.72.x | `pnpm supabase --version` * |
-| VS Code | any | `code --version` |
+| Tool           | Version | Command to Check                |
+| -------------- | ------- | ------------------------------- |
+| WSL            | 2.x     | `wsl --version` (in PowerShell) |
+| Docker         | 27.x    | `docker --version`              |
+| Docker Compose | 2.x     | `docker compose version`        |
+| Node.js        | 22.x    | `node --version`                |
+| pnpm           | 9.x     | `pnpm --version`                |
+| Git            | 2.x     | `git --version`                 |
+| Supabase CLI   | 2.72.x  | `pnpm supabase --version` \*    |
+| VS Code        | any     | `code --version`                |
 
 \* Supabase CLI is installed with `pnpm install` - check after project setup.
 

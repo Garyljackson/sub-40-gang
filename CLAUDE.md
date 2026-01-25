@@ -24,6 +24,7 @@ S40G (Sub 40 Gang) is a mobile-first web app that tracks running milestones for 
 When adding dependencies, scaffolding, or configuring tools, always use official CLI commands rather than manually generating code or configuration files. This ensures correct setup and follows recommended patterns.
 
 Examples:
+
 - **Adding packages:** Use `pnpm add <package>` instead of manually editing `package.json`
 - **Project scaffolding:** Use `create-next-app`, `create-react-app`, or similar tools when available
 - **Database migrations:** Use `pnpm db:diff` to generate migrations from schema changes
@@ -64,6 +65,7 @@ pnpm typecheck            # TypeScript type checking
 ### Milestone System
 
 Five milestones based on 4:00/km pace:
+
 - 1km (4:00), 2km (8:00), 5km (20:00), 7.5km (30:00), 10km (40:00)
 
 Achievements are calculated using a sliding window algorithm on Strava activity streams to find the fastest segment for each distance. A single run can unlock multiple milestones.
@@ -71,6 +73,7 @@ Achievements are calculated using a sliding window algorithm on Strava activity 
 ### Webhook Processing (Async Queue Pattern)
 
 Strava webhooks must respond within 2 seconds but only contain activity IDs. Processing flow:
+
 1. Webhook arrives -> immediately queue in `webhook_queue` table -> respond 200 OK
 2. Vercel Cron (every minute) -> fetch pending queue items -> process each:
    - Refresh Strava token if needed
@@ -101,6 +104,7 @@ Seasons run January 1 - December 31 in Brisbane time (Australia/Brisbane). Each 
 ## Testing Strava Integration
 
 Since Strava has no sandbox, use:
+
 1. **Unit tests with fixtures** - Simulate activity streams in `__tests__/fixtures/strava-streams.ts`
 2. **MSW mocks** - Mock Strava API responses for integration tests
 3. **Webhook simulation** - `pnpm tsx scripts/simulate-webhook.ts --activity 123456 --athlete 789`
@@ -109,6 +113,7 @@ Since Strava has no sandbox, use:
 ## Environment Variables
 
 Required in `.env.local`:
+
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
