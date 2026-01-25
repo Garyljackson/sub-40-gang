@@ -351,34 +351,34 @@
   - Create Strava API mock handlers
   - Set up test server
 
-- [ ] **Create test fixtures**
+- [x] **Create test fixtures**
   - Create `__tests__/fixtures/strava-streams.ts`
   - Add sample activity streams for testing
   - Include fast, slow, and variable pace runs
 
 ### 7.2 Unit Tests
 
-- [ ] **Test sliding window algorithm**
+- [x] **Test sliding window algorithm**
   - Test with various stream lengths
   - Test edge cases (empty, short runs)
   - Test segment finding accuracy
 
-- [ ] **Test timezone utilities**
+- [x] **Test timezone utilities**
   - Test season calculation for Brisbane
   - Test boundary cases (NYE, NY Day)
 
-- [ ] **Test milestone calculations**
+- [x] **Test milestone calculations**
   - Test achievement detection
   - Test skipping already achieved milestones
 
 ### 7.3 Integration Tests
 
-- [ ] **Test API endpoints**
+- [x] **Test API endpoints**
   - Test feed endpoint with pagination
   - Test leaderboard aggregation
   - Test reactions CRUD
 
-- [ ] **Test webhook processing**
+- [x] **Test webhook processing**
   - Test queue insertion
   - Test activity processing flow
 
@@ -389,11 +389,11 @@
   - Create `playwright.config.ts`
   - Add e2e script to package.json
 
-- [ ] **Create onboarding E2E tests**
+- [x] **Create onboarding E2E tests**
   - Test sign in flow redirect
   - Test authenticated user access
 
-- [ ] **Create feed E2E tests**
+- [x] **Create feed E2E tests**
   - Test feed display
   - Test reaction interactions
 
@@ -458,6 +458,6 @@
 | 4. Core Features             | 10     | 10        |
 | 5. Social Features           | 4      | 4         |
 | 6. PWA & Polish              | 9      | 9         |
-| 7. Testing                   | 11     | 3         |
+| 7. Testing                   | 11     | 11        |
 | 8. Deployment                | 8      | 0         |
-| **Total**                    | **73** | **57**    |
+| **Total**                    | **73** | **65**    |

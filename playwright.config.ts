@@ -25,5 +25,9 @@ export default defineConfig({
     command: 'pnpm dev',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
+    env: {
+      // Use test JWT secret for E2E authenticated tests
+      JWT_SECRET: 'test-jwt-secret-for-e2e-testing',
+    },
   },
 });
