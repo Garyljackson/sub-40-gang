@@ -1,8 +1,20 @@
+import { randomBytes } from 'crypto';
 import { createServiceClient } from './supabase-server';
 
 const STRAVA_API_BASE = 'https://www.strava.com/api/v3';
 const STRAVA_TOKEN_URL = 'https://www.strava.com/api/v3/oauth/token';
 const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000; // 5 minutes
+
+// OAuth CSRF protection
+export const OAUTH_STATE_COOKIE_NAME = 'strava_oauth_state';
+export const OAUTH_STATE_MAX_AGE_SECONDS = 600; // 10 minutes
+
+/**
+ * Generate a cryptographically random state parameter for OAuth CSRF protection
+ */
+export function generateOAuthState(): string {
+  return randomBytes(32).toString('hex');
+}
 
 export interface StravaTokenResponse {
   access_token: string;
@@ -228,14 +240,15 @@ export async function fetchActivityStreams(
 }
 
 /**
- * Build the Strava authorization URL
+ * Build the Strava authorization URL with CSRF protection state parameter
  */
-export function buildAuthorizationUrl(): string {
+export function buildAuthorizationUrl(state: string): string {
   const params = new URLSearchParams({
     client_id: process.env.STRAVA_CLIENT_ID!,
     redirect_uri: process.env.STRAVA_REDIRECT_URI!,
     response_type: 'code',
     scope: 'activity:read_all',
+    state,
   });
 
   return `https://www.strava.com/oauth/authorize?${params.toString()}`;

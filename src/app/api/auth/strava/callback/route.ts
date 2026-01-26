@@ -1,11 +1,13 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { exchangeCode } from '@/lib/strava';
+import { cookies } from 'next/headers';
+import { exchangeCode, OAUTH_STATE_COOKIE_NAME } from '@/lib/strava';
 import { createSession } from '@/lib/auth';
 import { createServiceClient } from '@/lib/supabase-server';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const code = searchParams.get('code');
+  const state = searchParams.get('state');
   const error = searchParams.get('error');
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
@@ -17,6 +19,18 @@ export async function GET(request: NextRequest) {
 
   if (!code) {
     return NextResponse.redirect(`${appUrl}?error=missing_code`);
+  }
+
+  // Validate CSRF state parameter
+  const cookieStore = await cookies();
+  const storedState = cookieStore.get(OAUTH_STATE_COOKIE_NAME)?.value;
+
+  // Delete the state cookie immediately (single use)
+  cookieStore.delete(OAUTH_STATE_COOKIE_NAME);
+
+  if (!state || !storedState || state !== storedState) {
+    console.error('OAuth state mismatch - possible CSRF attack');
+    return NextResponse.redirect(`${appUrl}?error=invalid_state`);
   }
 
   try {
