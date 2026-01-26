@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Card, CardContent } from './ui/card';
 import { Avatar } from './ui/avatar';
 import { RankBadge } from './rank-badge';
@@ -28,7 +29,7 @@ interface LeaderboardRowProps {
   isCurrentUser: boolean;
 }
 
-function LeaderboardRow({ entry, isCurrentUser }: LeaderboardRowProps) {
+const LeaderboardRow = memo(function LeaderboardRow({ entry, isCurrentUser }: LeaderboardRowProps) {
   const isLeader = entry.rank === 1;
 
   const getBorderClass = () => {
@@ -83,4 +84,4 @@ function LeaderboardRow({ entry, isCurrentUser }: LeaderboardRowProps) {
       </CardContent>
     </Card>
   );
-}
+});

@@ -44,58 +44,36 @@ export async function GET(request: NextRequest) {
     const athlete = tokens.athlete;
     const supabase = createServiceClient();
 
-    // Upsert member record (match on strava_athlete_id)
-    const memberData = {
-      strava_athlete_id: String(athlete.id),
-      name: `${athlete.firstname} ${athlete.lastname}`.trim(),
-      profile_photo_url: athlete.profile || athlete.profile_medium || null,
-      strava_access_token: tokens.access_token,
-      strava_refresh_token: tokens.refresh_token,
-      token_expires_at: new Date(tokens.expires_at * 1000).toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-
-    const { data: existingMember } = await supabase
+    // Upsert member record (single query using ON CONFLICT)
+    // Note: joined_at has a DB default so it's only set on initial insert
+    const { data: member, error: upsertError } = await supabase
       .from('members')
-      .select('id, joined_at')
-      .eq('strava_athlete_id', String(athlete.id))
+      .upsert(
+        {
+          strava_athlete_id: String(athlete.id),
+          name: `${athlete.firstname} ${athlete.lastname}`.trim(),
+          profile_photo_url: athlete.profile || athlete.profile_medium || null,
+          strava_access_token: tokens.access_token,
+          strava_refresh_token: tokens.refresh_token,
+          token_expires_at: new Date(tokens.expires_at * 1000).toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'strava_athlete_id' }
+      )
+      .select('id')
       .single();
 
-    let memberId: string;
-
-    if (existingMember) {
-      // Update existing member
-      const { error: updateError } = await supabase
-        .from('members')
-        .update(memberData)
-        .eq('id', existingMember.id);
-
-      if (updateError) {
-        throw new Error(`Failed to update member: ${updateError.message}`);
-      }
-      memberId = existingMember.id;
-    } else {
-      // Insert new member
-      const { data: newMember, error: insertError } = await supabase
-        .from('members')
-        .insert({
-          ...memberData,
-          joined_at: new Date().toISOString(),
-        })
-        .select('id')
-        .single();
-
-      if (insertError || !newMember) {
-        throw new Error(`Failed to create member: ${insertError?.message}`);
-      }
-      memberId = newMember.id;
+    if (upsertError || !member) {
+      throw new Error(`Failed to upsert member: ${upsertError?.message}`);
     }
+
+    const memberId = member.id;
 
     // Create session
     await createSession({
       memberId,
       stravaAthleteId: String(athlete.id),
-      name: memberData.name,
+      name: `${athlete.firstname} ${athlete.lastname}`.trim(),
     });
 
     return NextResponse.redirect(appUrl);
