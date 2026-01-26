@@ -1,9 +1,8 @@
-import Link from 'next/link';
 import Image from 'next/image';
 
 export function StravaLoginButton() {
   return (
-    <Link href="/api/auth/strava" className="inline-block">
+    <a href="/api/auth/strava" className="inline-block">
       <Image
         src="/btn-strava-connect.svg"
         alt="Connect with Strava"
@@ -11,6 +10,6 @@ export function StravaLoginButton() {
         height={48}
         priority
       />
-    </Link>
+    </a>
   );
 }
