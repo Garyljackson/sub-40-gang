@@ -8,6 +8,7 @@ import { MilestoneGrid } from '@/components/milestone-grid';
 import { RecentRunCard } from '@/components/recent-run-card';
 import { LogoutButton } from '@/components/logout-button';
 import { PageHeader } from '@/components/page-header';
+import { Logo } from '@/components/logo';
 import type { ProfileMilestone, RecentActivity } from '@/lib/types';
 import type { MilestoneKey } from '@/lib/milestones';
 
@@ -102,7 +103,7 @@ export default async function ProfilePage() {
 
   return (
     <main>
-      <PageHeader title="Profile" />
+      <PageHeader title="Profile" logo={<Logo size="md" />} />
       <div className="space-y-4 p-4">
         {/* User Info */}
         <div className="flex items-center gap-4">

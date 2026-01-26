@@ -5,6 +5,7 @@ import { getCurrentSeason } from '@/lib/timezone';
 import { LeaderboardList } from '@/components/leaderboard-list';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/page-header';
+import { Logo } from '@/components/logo';
 import type { LeaderboardEntry, LeaderboardMilestone } from '@/lib/types';
 
 const MILESTONE_RANK: Record<MilestoneKey, number> = {
@@ -112,7 +113,7 @@ export default async function LeaderboardPage() {
 
   return (
     <main>
-      <PageHeader title="Leaderboard" subtitle="Race to Sub 40" />
+      <PageHeader title="Leaderboard" logo={<Logo size="md" />} />
       <div className="p-4">
         {data.entries.length > 0 ? (
           <LeaderboardList entries={data.entries} currentMemberId={data.currentMemberId} />

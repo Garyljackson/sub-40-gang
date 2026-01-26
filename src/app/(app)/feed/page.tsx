@@ -120,7 +120,7 @@ export default async function FeedPage() {
 
   return (
     <main>
-      <PageHeader title="S40G" subtitle="Sub 40 Gang Activity" logo={<Logo size="md" />} />
+      <PageHeader title="S40G" logo={<Logo size="md" />} />
       <div className="p-4">
         <FeedList
           initialData={initialData}
