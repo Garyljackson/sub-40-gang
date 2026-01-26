@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase-server';
 import { getCurrentSeason } from '@/lib/timezone';
 import { FeedList } from '@/components/feed-list';
 import { PageHeader } from '@/components/page-header';
+import { Logo } from '@/components/logo';
 import type { FeedResponse, FeedAchievement, FeedReaction } from '@/lib/types';
 
 const INITIAL_LIMIT = 20;
@@ -119,7 +120,7 @@ export default async function FeedPage() {
 
   return (
     <main>
-      <PageHeader title="S40G" subtitle="Sub 40 Gang Activity" />
+      <PageHeader title="S40G" subtitle="Sub 40 Gang Activity" logo={<Logo size="md" />} />
       <div className="p-4">
         <FeedList
           initialData={initialData}

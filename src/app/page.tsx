@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { StravaLoginButton } from '@/components/strava-login-button';
 import { MILESTONE_EMOJIS, type MilestoneKey } from '@/lib/milestones';
+import { Logo } from '@/components/logo';
 
 export default async function LoginPage() {
   const session = await getSession();
@@ -13,8 +14,8 @@ export default async function LoginPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-white p-6">
       <div className="flex max-w-sm flex-col items-center space-y-8 text-center">
-        <div className="space-y-2">
-          <h1 className="text-brand-primary text-4xl font-bold tracking-tight">S40G</h1>
+        <div className="flex flex-col items-center space-y-2">
+          <Logo size="xl" />
           <p className="text-xl text-gray-600">Sub 40 Gang</p>
         </div>
 
