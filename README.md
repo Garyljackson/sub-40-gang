@@ -164,7 +164,39 @@ In Vercel Dashboard → Your Project → **Settings** → **Environment Variable
 | `CRON_SECRET`                   | Generated secret (Step 3)                                 |
 | `NEXT_PUBLIC_APP_URL`           | `https://your-domain.vercel.app`                          |
 
-### Step 5: Deploy to Vercel
+### Step 5: Configure Supabase for Event-Driven Processing
+
+The app uses a database trigger to process Strava webhooks immediately when they arrive (instead of polling with a cron job).
+
+1. **Enable pg_net extension** in Supabase Dashboard:
+   - Go to **Database** → **Extensions**
+   - Search for `pg_net` and enable it
+
+2. **Store secrets in Supabase Vault** (SQL Editor):
+
+   ```sql
+   -- Store the CRON_SECRET (same value as in Vercel)
+   SELECT vault.create_secret(
+     'your-cron-secret-value',
+     'cron_secret',
+     'Bearer token for Vercel cron endpoint'
+   );
+
+   -- Store your Vercel production URL
+   SELECT vault.create_secret(
+     'https://your-domain.vercel.app',
+     'vercel_app_url',
+     'Vercel production URL'
+   );
+   ```
+
+3. **Verify secrets are stored**:
+   ```sql
+   SELECT name, description FROM vault.secrets
+   WHERE name IN ('cron_secret', 'vercel_app_url');
+   ```
+
+### Step 6: Deploy to Vercel
 
 Push your code to trigger a deployment, or manually deploy from the Vercel dashboard.
 
@@ -173,7 +205,7 @@ Verify the deployment by visiting:
 - `https://your-domain.vercel.app` - Should show the login page
 - `https://your-domain.vercel.app/api/health` - Should return `{"status":"healthy",...}`
 
-### Step 6: Register Strava Webhook
+### Step 7: Register Strava Webhook
 
 After deployment is live, register the webhook subscription:
 

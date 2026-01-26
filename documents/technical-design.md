@@ -66,76 +66,59 @@ For product requirements, see the [Product Requirements Document](./s40g-prd.md)
 └─────────────────────────────┘
 ```
 
-### Request Flow: New Activity (Async Processing)
+### Request Flow: New Activity (Event-Driven Processing)
 
-The webhook from Strava only contains the activity ID, not the full activity data. We must respond within 2 seconds, so processing is done asynchronously via a queue.
-
-```
-┌────────┐     ┌────────┐     ┌────────┐
-│ Strava │     │ Vercel │     │Supabase│
-│Webhook │     │  API   │     │   DB   │
-└───┬────┘     └───┬────┘     └───┬────┘
-    │              │              │
-    │ POST /api/   │              │
-    │ webhooks/    │              │
-    │ strava       │              │
-    │─────────────>│              │
-    │              │              │
-    │              │ INSERT into  │
-    │              │ webhook_queue│
-    │              │─────────────>│
-    │              │              │
-    │  200 OK      │              │
-    │<─────────────│              │
-    │              │              │
-    │   (within 2 seconds)        │
-```
+The webhook from Strava only contains the activity ID, not the full activity data. We must respond within 2 seconds, so processing is triggered asynchronously via a database trigger.
 
 ```
-┌────────┐     ┌────────┐     ┌────────┐     ┌────────┐
-│ Vercel │     │Supabase│     │ Strava │     │ Client │
-│  Cron  │     │   DB   │     │  API   │     │  PWA   │
-└───┬────┘     └───┬────┘     └───┬────┘     └───┬────┘
-    │              │              │              │
-    │ (every 1 min)│              │              │
-    │ GET /api/    │              │              │
-    │ cron/process │              │              │
-    │──────────────│              │              │
-    │              │              │              │
-    │ SELECT FROM  │              │              │
-    │ webhook_queue│              │              │
-    │ WHERE pending│              │              │
-    │<─────────────│              │              │
-    │              │              │              │
-    │ For each item:              │              │
-    │              │              │              │
-    │ UPDATE status│              │              │
-    │ = processing │              │              │
-    │─────────────>│              │              │
-    │              │              │              │
-    │ Refresh token (if needed)   │              │
-    │────────────────────────────>│              │
-    │              │              │              │
-    │ GET /activities/{id}/streams│              │
-    │────────────────────────────>│              │
-    │              │              │              │
-    │   time[], distance[]        │              │
-    │<────────────────────────────│              │
-    │              │              │              │
-    │ Calculate best efforts      │              │
-    │ (sliding window)            │              │
-    │              │              │              │
-    │ INSERT achievements         │              │
-    │─────────────>│              │              │
-    │              │              │              │
-    │ UPDATE status│              │              │
-    │ = completed  │              │              │
-    │─────────────>│              │              │
-    │              │              │              │
-    │              │ Realtime     │              │
-    │              │ broadcast    │              │
-    │              │─────────────────────────────>│
+┌────────┐     ┌────────┐     ┌────────┐     ┌────────┐     ┌────────┐
+│ Strava │     │ Vercel │     │Supabase│     │ Vercel │     │ Client │
+│Webhook │     │  API   │     │   DB   │     │  API   │     │  PWA   │
+└───┬────┘     └───┬────┘     └───┬────┘     └───┬────┘     └───┬────┘
+    │              │              │              │              │
+    │ POST /api/   │              │              │              │
+    │ webhooks/    │              │              │              │
+    │ strava       │              │              │              │
+    │─────────────>│              │              │              │
+    │              │              │              │              │
+    │              │ INSERT into  │              │              │
+    │              │ webhook_queue│              │              │
+    │              │─────────────>│              │              │
+    │              │              │              │              │
+    │  200 OK      │              │              │              │
+    │<─────────────│              │              │              │
+    │              │              │              │              │
+    │   (within 2 seconds)        │              │              │
+    │              │              │              │              │
+    │              │ AFTER INSERT │              │              │
+    │              │ trigger fires│              │              │
+    │              │ (pg_net)     │              │              │
+    │              │──────────────────────────>│              │
+    │              │              │              │              │
+    │              │              │ GET /api/    │              │
+    │              │              │ cron/process │              │
+    │              │              │              │              │
+    │              │              │ Fetch streams│              │
+    │              │              │ from Strava  │              │
+    │              │              │              │              │
+    │              │              │ Calculate    │              │
+    │              │              │ achievements │              │
+    │              │              │              │              │
+    │              │              │ INSERT into  │              │
+    │              │              │ achievements │              │
+    │              │              │<─────────────│              │
+    │              │              │              │              │
+    │              │              │ Realtime     │              │
+    │              │              │ broadcast    │              │
+    │              │              │─────────────────────────────>│
 ```
+
+**Key points:**
+
+- The database trigger (`on_webhook_queue_insert`) fires immediately on INSERT
+- Uses `pg_net` extension to make async HTTP calls to the Vercel endpoint
+- Processing happens within seconds of the webhook arriving
+- A daily Vercel cron job serves as a fallback safety net
 
 ---
 
@@ -707,12 +690,12 @@ Standard error codes:
 
 ### Overview
 
-Strava integration uses a **queue-based async processing pattern** for handling webhook events:
+Strava integration uses an **event-driven async processing pattern** for handling webhook events:
 
 1. **Webhook arrives** → Contains only activity ID and athlete ID (no activity data)
 2. **Immediate response** → Must respond with 200 OK within 2 seconds
 3. **Queue for processing** → Event is stored in `webhook_queue` table
-4. **Cron job processes** → Every minute, pending items are fetched and processed
+4. **Database trigger fires** → `pg_net` immediately calls the processing endpoint
 5. **Fetch activity streams** → Requires token refresh and API calls to Strava
 
 This pattern is necessary because:
@@ -883,9 +866,9 @@ export async function POST(request: Request) {
 }
 ```
 
-#### Queue Processor (Cron Job)
+#### Queue Processor (Event-Driven + Fallback Cron)
 
-Runs every minute via Vercel Cron to process pending webhook events.
+The queue processor is triggered immediately via a database trigger when webhooks arrive. A daily Vercel cron job serves as a fallback.
 
 ```typescript
 // GET /api/cron/process-queue
@@ -2359,28 +2342,46 @@ module.exports = {
 // vercel.json
 
 {
-  "buildCommand": "pnpm build",
-  "devCommand": "pnpm dev",
-  "installCommand": "pnpm install",
-  "framework": "nextjs",
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "regions": ["syd1"],
   "crons": [
     {
       "path": "/api/cron/process-queue",
-      "schedule": "* * * * *"
-    },
-    {
-      "path": "/api/cron/token-refresh",
-      "schedule": "0 */6 * * *"
+      "schedule": "0 15 * * *"
     }
   ]
 }
 ```
 
-**Note:** Vercel's free tier (Hobby) includes 2 cron jobs, which is exactly what we need:
+**Note:** The primary webhook processing is event-driven via a Supabase database trigger (see below). The daily cron job serves as a fallback safety net.
 
-1. `process-queue` - Runs every minute to process webhook events
-2. `token-refresh` - Runs every 6 hours to proactively refresh Strava tokens
+### Supabase Event-Driven Processing
+
+Webhook processing is triggered immediately when events arrive, using a PostgreSQL trigger with pg_net:
+
+```sql
+-- Trigger fires on INSERT to webhook_queue
+-- Uses pg_net to async call the Vercel endpoint
+CREATE TRIGGER on_webhook_queue_insert
+  AFTER INSERT ON webhook_queue
+  FOR EACH ROW
+  EXECUTE FUNCTION trigger_queue_processor();
+```
+
+**Required Supabase setup:**
+
+1. Enable `pg_net` extension (Database → Extensions)
+2. Store secrets in Vault:
+   ```sql
+   SELECT vault.create_secret('your-cron-secret', 'cron_secret', '...');
+   SELECT vault.create_secret('https://your-app.vercel.app', 'vercel_app_url', '...');
+   ```
+
+This approach:
+
+- Processes webhooks within seconds (not minutes)
+- Works within Vercel's free tier (daily cron limit)
+- Provides a fallback if the trigger fails
 
 ### GitHub Actions CI/CD
 
@@ -2589,8 +2590,7 @@ s40g/
 │   │   │   │       ├── route.ts
 │   │   │   │       └── callback/route.ts
 │   │   │   ├── cron/
-│   │   │   │   ├── process-queue/route.ts
-│   │   │   │   └── token-refresh/route.ts
+│   │   │   │   └── process-queue/route.ts
 │   │   │   ├── feed/route.ts
 │   │   │   ├── leaderboard/route.ts
 │   │   │   ├── profile/
