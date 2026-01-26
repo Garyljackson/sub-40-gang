@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import {
   buildAuthorizationUrl,
   generateOAuthState,
@@ -11,9 +10,11 @@ export async function GET() {
   // Generate cryptographically random state for CSRF protection
   const state = generateOAuthState();
 
+  const authUrl = buildAuthorizationUrl(state);
+  const response = NextResponse.redirect(authUrl);
+
   // Store state in HTTP-only cookie for validation in callback
-  const cookieStore = await cookies();
-  cookieStore.set(OAUTH_STATE_COOKIE_NAME, state, {
+  response.cookies.set(OAUTH_STATE_COOKIE_NAME, state, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
@@ -21,6 +22,5 @@ export async function GET() {
     path: '/',
   });
 
-  const authUrl = buildAuthorizationUrl(state);
-  return NextResponse.redirect(authUrl);
+  return response;
 }
