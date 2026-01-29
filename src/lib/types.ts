@@ -1,7 +1,7 @@
 import type { MilestoneKey } from './milestones';
 
 // Allowed reaction emojis
-export const ALLOWED_EMOJIS = ['🎉', '👏', '🔥', '💪'] as const;
+export const ALLOWED_EMOJIS = ['🎉', '👏', '🔥', '💪', '🍺'] as const;
 export type AllowedEmoji = (typeof ALLOWED_EMOJIS)[number];
 
 // Feed API types
