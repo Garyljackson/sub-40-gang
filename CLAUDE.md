@@ -54,6 +54,12 @@ pnpm test:watch           # Watch mode
 pnpm test:coverage        # With coverage
 pnpm test:e2e             # E2E tests (Playwright)
 
+# Run a single test file
+pnpm test src/__tests__/lib/best-effort.test.ts
+
+# Run tests matching a pattern
+pnpm test -t "beatsMilestone"
+
 # Code Quality
 pnpm lint                 # ESLint
 pnpm format               # Prettier
@@ -81,14 +87,26 @@ Strava webhooks must respond within 2 seconds but only contain activity IDs. Pro
    - Calculate achievements with sliding window algorithm
    - Insert new achievements to database
 
-### Key Files (when implemented)
+### Key Files
 
 - `src/lib/best-effort.ts` - Sliding window algorithm for finding fastest segments
 - `src/lib/milestones.ts` - Milestone configuration (distances, target times)
 - `src/lib/timezone.ts` - Brisbane timezone helpers (seasons run Jan 1 - Dec 31 Brisbane time)
 - `src/lib/process-activity.ts` - Achievement calculation logic
+- `src/lib/api-auth.ts` - `withAuth` HOF for protecting API routes
 - `src/app/api/webhooks/strava/route.ts` - Webhook handler (queues events)
 - `src/app/api/cron/process-queue/route.ts` - Queue processor
+
+### Route Structure
+
+- `src/app/(app)/` - Route group for authenticated pages (feed, leaderboard, profile)
+- `src/app/api/` - API routes (auth, webhooks, cron, data endpoints)
+- `src/components/` - Reusable React components
+
+### Supabase Clients
+
+- `src/lib/supabase.ts` - Browser client (use in Client Components)
+- `src/lib/supabase-server.ts` - Server client with service role (use in API routes/Server Components)
 
 ### Seasons
 
