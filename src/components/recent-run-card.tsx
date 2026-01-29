@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader } from './ui/card';
 import { MilestoneBadge } from './milestone-badge';
 import { formatTime } from '@/lib/milestones';
+import { BRISBANE_TIMEZONE } from '@/lib/timezone';
 import type { RecentActivity } from '@/lib/types';
 
 interface RecentRunCardProps {
@@ -21,6 +22,7 @@ function formatDate(dateString: string): string {
   return date.toLocaleDateString('en-AU', {
     day: 'numeric',
     month: 'short',
+    timeZone: BRISBANE_TIMEZONE,
   });
 }
 

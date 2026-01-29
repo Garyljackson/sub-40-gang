@@ -2,6 +2,7 @@ import { Card, CardContent, CardFooter } from './ui/card';
 import { Avatar } from './ui/avatar';
 import { ReactionBar } from './reaction-bar';
 import { MILESTONES, MILESTONE_EMOJIS, formatTime } from '@/lib/milestones';
+import { BRISBANE_TIMEZONE } from '@/lib/timezone';
 import type { FeedAchievement, FeedReaction } from '@/lib/types';
 
 interface AchievementCardProps {
@@ -25,6 +26,7 @@ function formatRelativeTime(dateString: string): string {
   return date.toLocaleDateString('en-AU', {
     day: 'numeric',
     month: 'short',
+    timeZone: BRISBANE_TIMEZONE,
   });
 }
 
