@@ -57,7 +57,7 @@ export function MilestoneBadge({
       )}
       {showTime && (
         <span
-          className={`text-xs ${achieved ? 'text-brand-primary font-semibold' : 'text-gray-400'}`}
+          className={`text-center text-xs ${achieved ? 'text-brand-primary font-semibold' : 'text-gray-400'}`}
         >
           {achieved && timeSeconds ? formatTime(timeSeconds) : formatTargetTime(milestone)}
         </span>
