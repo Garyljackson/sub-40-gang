@@ -128,6 +128,13 @@ Since Strava has no sandbox, use:
 3. **Webhook simulation** - `pnpm tsx scripts/simulate-webhook.ts --activity 123456 --athlete 789`
 4. **Database seeding** - `pnpm db:reset` applies seed data for UI testing
 
+### Local Development with Strava OAuth
+
+Strava automatically allows `localhost` callbacks alongside your configured production domain. No need to change Strava API settings when switching between local and production - just use different `STRAVA_REDIRECT_URI` values in each environment:
+
+- **Local:** `STRAVA_REDIRECT_URI=http://localhost:3000/api/auth/strava/callback`
+- **Production:** `STRAVA_REDIRECT_URI=https://sub-40-gang.vercel.app/api/auth/strava/callback`
+
 ## Environment Variables
 
 Required in `.env.local`:
