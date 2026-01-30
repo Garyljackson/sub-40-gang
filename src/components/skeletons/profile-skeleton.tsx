@@ -1,43 +1,59 @@
+import { Card, CardContent, CardHeader } from '../ui/card';
+
 export function ProfileSkeleton() {
   return (
-    <main className="space-y-6 p-4">
-      <header className="flex items-center gap-4">
-        <div className="h-16 w-16 animate-pulse rounded-full bg-gray-200" />
-        <div className="space-y-2">
-          <div className="h-7 w-36 animate-pulse rounded bg-gray-200" />
-          <div className="h-5 w-48 animate-pulse rounded bg-gray-200" />
+    <div className="space-y-4">
+      {/* User Info */}
+      <div className="flex items-center gap-4">
+        <div className="h-20 w-20 animate-pulse rounded-full bg-gray-200" />
+        <div className="flex-1 space-y-2">
+          <div className="h-6 w-12 animate-pulse rounded bg-gray-200" />
+          <div className="h-4 w-36 animate-pulse rounded bg-gray-200" />
         </div>
-      </header>
+      </div>
 
-      <section>
-        <div className="mb-3 h-6 w-24 animate-pulse rounded bg-gray-200" />
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div
-              key={i}
-              className="animate-pulse rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
-            >
-              <div className="mb-2 h-5 w-16 rounded bg-gray-200" />
-              <div className="h-4 w-12 rounded bg-gray-200" />
+      {/* Milestones Card */}
+      <Card>
+        <CardHeader>
+          <div className="h-5 w-32 animate-pulse rounded bg-gray-200" />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex justify-between">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex flex-col items-center gap-1">
+                <div className="h-10 w-10 animate-pulse rounded-full bg-gray-200" />
+                <div className="h-3 w-8 animate-pulse rounded bg-gray-200" />
+                <div className="h-3 w-10 animate-pulse rounded bg-gray-200" />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Last Synced Run */}
+      <Card>
+        <CardHeader>
+          <div className="h-5 w-28 animate-pulse rounded bg-gray-200" />
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="h-5 w-32 animate-pulse rounded bg-gray-200" />
+              <div className="h-4 w-20 animate-pulse rounded bg-gray-200" />
             </div>
-          ))}
-        </div>
-      </section>
+            <div className="flex gap-4">
+              <div className="h-4 w-16 animate-pulse rounded bg-gray-200" />
+              <div className="h-4 w-16 animate-pulse rounded bg-gray-200" />
+              <div className="h-4 w-20 animate-pulse rounded bg-gray-200" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      <section>
-        <div className="mb-3 h-6 w-32 animate-pulse rounded bg-gray-200" />
-        <div className="animate-pulse rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-          <div className="mb-3 flex items-center justify-between">
-            <div className="h-5 w-32 rounded bg-gray-200" />
-            <div className="h-4 w-20 rounded bg-gray-200" />
-          </div>
-          <div className="flex gap-4">
-            <div className="h-4 w-16 rounded bg-gray-200" />
-            <div className="h-4 w-16 rounded bg-gray-200" />
-            <div className="h-4 w-20 rounded bg-gray-200" />
-          </div>
-        </div>
+      {/* Logout Button */}
+      <section className="pt-4">
+        <div className="h-10 w-full animate-pulse rounded-lg bg-gray-200" />
       </section>
-    </main>
+    </div>
   );
 }

@@ -72,6 +72,53 @@ export type Database = {
           },
         ];
       };
+      archived_workouts: {
+        Row: {
+          archived_at: string;
+          final_vote_count: number;
+          id: string;
+          name: string;
+          notes: string | null;
+          proposer_id: string | null;
+          proposer_name: string;
+          proposer_profile_photo_url: string | null;
+          segments: Json;
+          wednesday_date: string;
+        };
+        Insert: {
+          archived_at?: string;
+          final_vote_count?: number;
+          id?: string;
+          name: string;
+          notes?: string | null;
+          proposer_id?: string | null;
+          proposer_name: string;
+          proposer_profile_photo_url?: string | null;
+          segments: Json;
+          wednesday_date: string;
+        };
+        Update: {
+          archived_at?: string;
+          final_vote_count?: number;
+          id?: string;
+          name?: string;
+          notes?: string | null;
+          proposer_id?: string | null;
+          proposer_name?: string;
+          proposer_profile_photo_url?: string | null;
+          segments?: Json;
+          wednesday_date?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'archived_workouts_proposer_id_fkey';
+            columns: ['proposer_id'];
+            isOneToOne: false;
+            referencedRelation: 'members';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       members: {
         Row: {
           created_at: string;
@@ -236,6 +283,86 @@ export type Database = {
         };
         Relationships: [];
       };
+      workout_proposals: {
+        Row: {
+          created_at: string;
+          id: string;
+          name: string;
+          notes: string | null;
+          proposer_id: string;
+          segments: Json;
+          updated_at: string;
+          wednesday_date: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          name: string;
+          notes?: string | null;
+          proposer_id: string;
+          segments: Json;
+          updated_at?: string;
+          wednesday_date: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          name?: string;
+          notes?: string | null;
+          proposer_id?: string;
+          segments?: Json;
+          updated_at?: string;
+          wednesday_date?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'workout_proposals_proposer_id_fkey';
+            columns: ['proposer_id'];
+            isOneToOne: false;
+            referencedRelation: 'members';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      workout_votes: {
+        Row: {
+          created_at: string;
+          id: string;
+          member_id: string;
+          proposal_id: string;
+          wednesday_date: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          member_id: string;
+          proposal_id: string;
+          wednesday_date: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          member_id?: string;
+          proposal_id?: string;
+          wednesday_date?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'workout_votes_member_id_fkey';
+            columns: ['member_id'];
+            isOneToOne: false;
+            referencedRelation: 'members';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'workout_votes_proposal_id_fkey';
+            columns: ['proposal_id'];
+            isOneToOne: false;
+            referencedRelation: 'workout_proposals';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -245,7 +372,9 @@ export type Database = {
     };
     Enums: {
       milestone_type: '1km' | '2km' | '5km' | '7.5km' | '10km';
+      pace_range: 'recovery' | 'easy' | 'moderate' | 'tempo' | 'threshold' | 'hard' | 'sprint';
       queue_status: 'pending' | 'processing' | 'completed' | 'failed';
+      rest_type: 'standing' | 'walking' | 'active';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -375,7 +504,9 @@ export const Constants = {
   public: {
     Enums: {
       milestone_type: ['1km', '2km', '5km', '7.5km', '10km'],
+      pace_range: ['recovery', 'easy', 'moderate', 'tempo', 'threshold', 'hard', 'sprint'],
       queue_status: ['pending', 'processing', 'completed', 'failed'],
+      rest_type: ['standing', 'walking', 'active'],
     },
   },
 } as const;

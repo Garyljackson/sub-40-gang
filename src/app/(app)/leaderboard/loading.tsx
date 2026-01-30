@@ -1,13 +1,14 @@
 import { LeaderboardSkeleton } from '@/components/skeletons/leaderboard-skeleton';
+import { PageHeader } from '@/components/page-header';
+import { Logo } from '@/components/logo';
 
 export default function LeaderboardLoading() {
   return (
-    <main className="p-4">
-      <header className="mb-4">
-        <div className="h-8 w-32 animate-pulse rounded bg-gray-800" />
-        <div className="mt-1 h-5 w-24 animate-pulse rounded bg-gray-800" />
-      </header>
-      <LeaderboardSkeleton count={8} />
+    <main>
+      <PageHeader title="Leaderboard" logo={<Logo size="md" />} />
+      <div className="p-4">
+        <LeaderboardSkeleton count={8} />
+      </div>
     </main>
   );
 }

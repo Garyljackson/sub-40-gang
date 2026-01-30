@@ -5,6 +5,10 @@
     {
       "path": "/api/cron/process-queue",
       "schedule": "0 15 * * *"
+    },
+    {
+      "path": "/api/cron/archive-workout",
+      "schedule": "0 20 * * 2"
     }
   ]
 }
