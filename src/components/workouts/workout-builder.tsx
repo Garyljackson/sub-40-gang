@@ -405,13 +405,13 @@ function EditableSegmentRow({
         className={`rounded-lg border border-gray-200 bg-white p-3 ${nestLevel > 0 ? 'bg-gray-50' : ''}`}
       >
         <div className="mb-2 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <button onClick={onEdit} className="flex items-center gap-2 active:opacity-70">
             <span className="rounded bg-gray-200 px-2 py-0.5 text-xs font-bold text-gray-700">
               {segment.count}×
             </span>
             <span className="text-sm font-medium text-gray-900">Repeat</span>
             {nestLevel > 0 && <span className="text-xs text-gray-400">(nested)</span>}
-          </div>
+          </button>
           <div className="flex items-center gap-1">
             <button
               onClick={onMoveUp}
@@ -426,12 +426,6 @@ function EditableSegmentRow({
               className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30"
             >
               ↓
-            </button>
-            <button
-              onClick={onEdit}
-              className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-            >
-              ✎
             </button>
             <button
               onClick={onDelete}
@@ -471,8 +465,13 @@ function EditableSegmentRow({
                 />
               ) : (
                 <div className="flex items-center gap-2">
-                  <div className={`h-4 w-4 rounded ${getSegmentColor(nested)}`} />
-                  <span className="flex-1 text-sm text-gray-700">{getSegmentSummary(nested)}</span>
+                  <button
+                    onClick={() => onEditInRepeat?.(nested, currentPath)}
+                    className="flex flex-1 items-center gap-2 text-left active:opacity-70"
+                  >
+                    <div className={`h-4 w-4 rounded ${getSegmentColor(nested)}`} />
+                    <span className="text-sm text-gray-700">{getSegmentSummary(nested)}</span>
+                  </button>
                   <button
                     onClick={() => onMoveInRepeat?.(nested.id, 'up', currentPath)}
                     disabled={idx === 0}
@@ -486,12 +485,6 @@ function EditableSegmentRow({
                     className="rounded p-0.5 text-xs text-gray-400 hover:bg-gray-100 disabled:opacity-30"
                   >
                     ↓
-                  </button>
-                  <button
-                    onClick={() => onEditInRepeat?.(nested, currentPath)}
-                    className="rounded p-0.5 text-xs text-gray-400 hover:bg-gray-100"
-                  >
-                    ✎
                   </button>
                   <button
                     onClick={() => onDeleteFromRepeat?.(nested.id, currentPath)}
@@ -517,10 +510,13 @@ function EditableSegmentRow({
 
   return (
     <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-3">
-      <div className={`h-8 w-8 rounded ${color}`} />
-      <div className="flex-1">
+      <button
+        onClick={onEdit}
+        className="flex flex-1 items-center gap-3 text-left active:opacity-70"
+      >
+        <div className={`h-8 w-8 rounded ${color}`} />
         <p className="font-medium text-gray-900">{summary}</p>
-      </div>
+      </button>
       <div className="flex items-center gap-1">
         <button
           onClick={onMoveUp}
@@ -535,12 +531,6 @@ function EditableSegmentRow({
           className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30"
         >
           ↓
-        </button>
-        <button
-          onClick={onEdit}
-          className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-        >
-          ✎
         </button>
         <button
           onClick={onDelete}
