@@ -7,20 +7,57 @@
  *
  * Usage:
  *   # Encrypt tokens in local database
- *   pnpm tsx scripts/migrate-encrypt-tokens.ts
+ *   TOKEN_ENCRYPTION_KEY="<key>" pnpm tsx scripts/migrate-encrypt-tokens.ts
  *
  *   # Encrypt tokens in remote database
- *   pnpm tsx scripts/migrate-encrypt-tokens.ts --remote
+ *   TOKEN_ENCRYPTION_KEY="<production-key>" pnpm tsx scripts/migrate-encrypt-tokens.ts --remote
  *
  *   # Dry run (show what would be encrypted without making changes)
- *   pnpm tsx scripts/migrate-encrypt-tokens.ts --dry-run
+ *   TOKEN_ENCRYPTION_KEY="<key>" pnpm tsx scripts/migrate-encrypt-tokens.ts --dry-run
  */
-
-import dotenv from 'dotenv';
-dotenv.config({ path: '.env.local' });
 import { execSync } from 'child_process';
+import { createCipheriv, randomBytes } from 'crypto';
 import pg from 'pg';
-import { encryptToken, isEncrypted } from '../src/lib/encryption';
+
+const ALGORITHM = 'aes-256-gcm';
+const IV_LENGTH = 12;
+const TAG_LENGTH = 16;
+
+function getKeyBuffer(key: string): Buffer {
+  const keyBuffer = Buffer.from(key, 'base64');
+  if (keyBuffer.length !== 32) {
+    throw new Error(
+      `TOKEN_ENCRYPTION_KEY must be 32 bytes (base64 encoded), got ${keyBuffer.length} bytes`
+    );
+  }
+  return keyBuffer;
+}
+
+function encryptWithKey(plaintext: string, key: Buffer): string {
+  const iv = randomBytes(IV_LENGTH);
+  const cipher = createCipheriv(ALGORITHM, key, iv);
+
+  const encrypted = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
+  const authTag = cipher.getAuthTag();
+
+  const combined = Buffer.concat([iv, encrypted, authTag]);
+  return combined.toString('base64');
+}
+
+function isEncrypted(value: string): boolean {
+  if (value.length < 50) return false;
+
+  if (!/^[A-Za-z0-9+/]+=*$/.test(value)) {
+    return false;
+  }
+
+  try {
+    const decoded = Buffer.from(value, 'base64');
+    return decoded.length >= IV_LENGTH + TAG_LENGTH + 10;
+  } catch {
+    return false;
+  }
+}
 
 interface Args {
   remote: boolean;
@@ -59,7 +96,7 @@ function parseArgs(): Args {
 
 function printUsage(): void {
   console.log(`
-Usage: pnpm tsx scripts/migrate-encrypt-tokens.ts [options]
+Usage: TOKEN_ENCRYPTION_KEY="<key>" pnpm tsx scripts/migrate-encrypt-tokens.ts [options]
 
 Options:
   --remote      Use remote Supabase (linked project) instead of local
@@ -68,13 +105,13 @@ Options:
 
 Examples:
   # Encrypt tokens in local database
-  pnpm tsx scripts/migrate-encrypt-tokens.ts
+  TOKEN_ENCRYPTION_KEY="<local-key>" pnpm tsx scripts/migrate-encrypt-tokens.ts
 
-  # Encrypt tokens in remote database
-  pnpm tsx scripts/migrate-encrypt-tokens.ts --remote
+  # Encrypt tokens in remote database (use production key from Vercel)
+  TOKEN_ENCRYPTION_KEY="<production-key>" pnpm tsx scripts/migrate-encrypt-tokens.ts --remote
 
   # Preview changes without modifying data
-  pnpm tsx scripts/migrate-encrypt-tokens.ts --dry-run
+  TOKEN_ENCRYPTION_KEY="<key>" pnpm tsx scripts/migrate-encrypt-tokens.ts --dry-run
 `);
 }
 
@@ -149,14 +186,25 @@ async function main(): Promise<void> {
     process.exit(0);
   }
 
-  // Verify encryption key is available
+  // Require explicit TOKEN_ENCRYPTION_KEY environment variable
   if (!process.env.TOKEN_ENCRYPTION_KEY) {
-    console.error('Error: TOKEN_ENCRYPTION_KEY environment variable is not set');
+    console.error('Error: TOKEN_ENCRYPTION_KEY environment variable is required');
+    console.error('');
+    console.error('Usage:');
+    console.error('  TOKEN_ENCRYPTION_KEY="<key>" pnpm tsx scripts/migrate-encrypt-tokens.ts');
+    console.error('');
+    console.error('For remote database, use the PRODUCTION key from Vercel:');
     console.error(
-      "Generate one with: node -e \"console.log(require('crypto').randomBytes(32).toString('base64'))\""
+      '  TOKEN_ENCRYPTION_KEY="<production-key>" pnpm tsx scripts/migrate-encrypt-tokens.ts --remote'
+    );
+    console.error('');
+    console.error(
+      "Generate a new key with: node -e \"console.log(require('crypto').randomBytes(32).toString('base64'))\""
     );
     process.exit(1);
   }
+
+  const keyBuffer = getKeyBuffer(process.env.TOKEN_ENCRYPTION_KEY);
 
   const dbLabel = args.remote ? 'remote' : 'local';
   const modeLabel = args.dryRun ? ' (DRY RUN)' : '';
@@ -198,8 +246,8 @@ async function main(): Promise<void> {
       }
 
       // Encrypt tokens
-      const encryptedAccessToken = encryptToken(row.strava_access_token);
-      const encryptedRefreshToken = encryptToken(row.strava_refresh_token);
+      const encryptedAccessToken = encryptWithKey(row.strava_access_token, keyBuffer);
+      const encryptedRefreshToken = encryptWithKey(row.strava_refresh_token, keyBuffer);
 
       // Update database
       await client.query(
