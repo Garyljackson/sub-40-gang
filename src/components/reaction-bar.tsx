@@ -64,7 +64,7 @@ export function ReactionBar({ achievementId, reactions, onUpdate }: ReactionBarP
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="relative flex flex-wrap items-center gap-2">
       {optimisticReactions.map((reaction) => (
         <button
           key={reaction.emoji}
@@ -80,7 +80,7 @@ export function ReactionBar({ achievementId, reactions, onUpdate }: ReactionBarP
         </button>
       ))}
 
-      <div className="relative">
+      <div>
         <button
           onClick={() => setShowPicker(!showPicker)}
           className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600"
@@ -88,21 +88,21 @@ export function ReactionBar({ achievementId, reactions, onUpdate }: ReactionBarP
         >
           +
         </button>
-
-        {showPicker && (
-          <div className="absolute bottom-full left-0 mb-2 flex gap-1 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
-            {ALLOWED_EMOJIS.map((emoji) => (
-              <button
-                key={emoji}
-                onClick={() => handleReaction(emoji)}
-                className="rounded p-1 text-xl hover:bg-gray-100"
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
+
+      {showPicker && (
+        <div className="absolute bottom-full left-0 mb-2 flex gap-1 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
+          {ALLOWED_EMOJIS.map((emoji) => (
+            <button
+              key={emoji}
+              onClick={() => handleReaction(emoji)}
+              className="rounded p-1 text-xl hover:bg-gray-100"
+            >
+              {emoji}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

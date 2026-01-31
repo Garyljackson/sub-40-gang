@@ -142,7 +142,7 @@ describe('POST /api/reactions', () => {
   });
 
   it('accepts all allowed emojis', async () => {
-    const allowedEmojis = ['🎉', '👏', '🔥', '💪', '🍺'];
+    const allowedEmojis = ['🎉', '👏', '🔥', '💪', '🍺', '🍆'];
 
     for (const emoji of allowedEmojis) {
       mockGetSession.mockResolvedValueOnce(aliceSession);
