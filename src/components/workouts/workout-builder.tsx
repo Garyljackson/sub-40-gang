@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Segment, PaceRange, RestType } from '@/lib/workout-types';
 import {
   PACE_RANGES,
@@ -21,6 +21,48 @@ import {
   generateSegmentId,
 } from '@/lib/workout-utils';
 import { WorkoutTimeline } from './workout-timeline';
+
+// Controlled numeric input that allows clearing while typing
+interface NumericInputProps {
+  value: number;
+  onChange: (value: number) => void;
+  defaultValue: number;
+  min?: number;
+  step?: number;
+  className?: string;
+}
+
+function NumericInput({ value, onChange, defaultValue, min, step, className }: NumericInputProps) {
+  const [localValue, setLocalValue] = useState(String(value));
+
+  // Sync local state when prop changes (e.g., preset buttons)
+  useEffect(() => {
+    setLocalValue(String(value));
+  }, [value]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalValue(e.target.value);
+  };
+
+  const handleBlur = () => {
+    const parsed = parseInt(localValue);
+    const finalValue = isNaN(parsed) ? defaultValue : parsed;
+    onChange(finalValue);
+    setLocalValue(String(finalValue));
+  };
+
+  return (
+    <input
+      type="number"
+      value={localValue}
+      onChange={handleChange}
+      onBlur={handleBlur}
+      className={className}
+      min={min}
+      step={step}
+    />
+  );
+}
 
 interface WorkoutBuilderProps {
   onClose: () => void;
@@ -711,16 +753,16 @@ function RunSegmentForm({ segment, onChange }: RunSegmentFormProps) {
       {mode === 'distance' ? (
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">Distance (meters)</label>
-          <input
-            type="number"
+          <NumericInput
             value={segment.distanceMeters || 400}
-            onChange={(e) =>
+            onChange={(value) =>
               onChange({
                 ...segment,
-                distanceMeters: parseInt(e.target.value) || 400,
+                distanceMeters: value,
                 durationSeconds: undefined,
               })
             }
+            defaultValue={DEFAULT_RUN_DISTANCE_METERS}
             className="w-full rounded-lg border border-gray-200 px-4 py-2"
             step={100}
             min={100}
@@ -746,16 +788,16 @@ function RunSegmentForm({ segment, onChange }: RunSegmentFormProps) {
       ) : (
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">Duration (seconds)</label>
-          <input
-            type="number"
+          <NumericInput
             value={segment.durationSeconds || 60}
-            onChange={(e) =>
+            onChange={(value) =>
               onChange({
                 ...segment,
-                durationSeconds: parseInt(e.target.value) || 60,
+                durationSeconds: value,
                 distanceMeters: undefined,
               })
             }
+            defaultValue={DEFAULT_REST_DURATION_SECONDS}
             className="w-full rounded-lg border border-gray-200 px-4 py-2"
             step={30}
             min={30}
@@ -815,12 +857,10 @@ function RestSegmentForm({ segment, onChange }: RestSegmentFormProps) {
       {/* Duration */}
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">Duration (seconds)</label>
-        <input
-          type="number"
+        <NumericInput
           value={segment.durationSeconds}
-          onChange={(e) =>
-            onChange({ ...segment, durationSeconds: parseInt(e.target.value) || 60 })
-          }
+          onChange={(value) => onChange({ ...segment, durationSeconds: value })}
+          defaultValue={DEFAULT_REST_DURATION_SECONDS}
           className="w-full rounded-lg border border-gray-200 px-4 py-2"
           step={15}
           min={15}
@@ -878,13 +918,12 @@ function RepeatSegmentForm({ segment, onChange }: RepeatSegmentFormProps) {
         <label className="mb-1 block text-sm font-medium text-gray-700">
           Number of repetitions
         </label>
-        <input
-          type="number"
+        <NumericInput
           value={segment.count}
-          onChange={(e) => onChange({ ...segment, count: parseInt(e.target.value) || 1 })}
+          onChange={(value) => onChange({ ...segment, count: value })}
+          defaultValue={DEFAULT_REPEAT_COUNT}
           className="w-full rounded-lg border border-gray-200 px-4 py-2"
           min={1}
-          max={20}
         />
         <div className="mt-2 flex gap-2">
           {[2, 3, 4, 5, 6, 8, 10].map((c) => (
