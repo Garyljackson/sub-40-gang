@@ -1,5 +1,6 @@
 import { randomBytes } from 'crypto';
 import { createServiceClient } from './supabase-server';
+import { decryptToken, encryptToken } from './encryption';
 
 const STRAVA_API_BASE = 'https://www.strava.com/api/v3';
 const STRAVA_TOKEN_URL = 'https://www.strava.com/api/v3/oauth/token';
@@ -148,23 +149,27 @@ export async function getValidToken(memberId: string): Promise<string> {
     throw new Error(`Member ${memberId} has deauthorized - no valid tokens`);
   }
 
+  // Decrypt tokens from database
+  const accessToken = decryptToken(member.strava_access_token);
+  const refreshTokenValue = decryptToken(member.strava_refresh_token);
+
   const expiresAt = new Date(member.token_expires_at).getTime();
   const now = Date.now();
 
   // Token is still valid and not expiring soon
   if (expiresAt > now + TOKEN_REFRESH_BUFFER_MS) {
-    return member.strava_access_token;
+    return accessToken;
   }
 
   // Token needs refresh
-  const newTokens = await refreshToken(member.strava_refresh_token);
+  const newTokens = await refreshToken(refreshTokenValue);
 
-  // Update tokens in database
+  // Update tokens in database (encrypted)
   const { error: updateError } = await supabase
     .from('members')
     .update({
-      strava_access_token: newTokens.access_token,
-      strava_refresh_token: newTokens.refresh_token,
+      strava_access_token: encryptToken(newTokens.access_token),
+      strava_refresh_token: encryptToken(newTokens.refresh_token),
       token_expires_at: new Date(newTokens.expires_at * 1000).toISOString(),
       updated_at: new Date().toISOString(),
     })
