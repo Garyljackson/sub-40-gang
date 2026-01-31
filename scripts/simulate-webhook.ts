@@ -14,9 +14,11 @@
  *   pnpm tsx scripts/simulate-webhook.ts --activity 12345678 --athlete 35797774 --remote
  */
 
-import 'dotenv/config';
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
 import { execSync } from 'child_process';
 import pg from 'pg';
+import { decryptToken } from '../src/lib/encryption';
 
 const STRAVA_API_BASE = 'https://www.strava.com/api/v3';
 
@@ -262,7 +264,8 @@ async function main(): Promise<void> {
     if (args.list) {
       // List recent activities
       console.log(`\nFetching recent activities from Strava...`);
-      const activities = await listRecentActivities(member.strava_access_token);
+      const accessToken = decryptToken(member.strava_access_token);
+      const activities = await listRecentActivities(accessToken);
 
       if (activities.length === 0) {
         console.log('No activities found.');

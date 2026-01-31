@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { exchangeCode, OAUTH_STATE_COOKIE_NAME } from '@/lib/strava';
 import { createSession } from '@/lib/auth';
 import { createServiceClient } from '@/lib/supabase-server';
+import { encryptToken } from '@/lib/encryption';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -53,8 +54,8 @@ export async function GET(request: NextRequest) {
           strava_athlete_id: String(athlete.id),
           name: `${athlete.firstname} ${athlete.lastname}`.trim(),
           profile_photo_url: athlete.profile || athlete.profile_medium || null,
-          strava_access_token: tokens.access_token,
-          strava_refresh_token: tokens.refresh_token,
+          strava_access_token: encryptToken(tokens.access_token),
+          strava_refresh_token: encryptToken(tokens.refresh_token),
           token_expires_at: new Date(tokens.expires_at * 1000).toISOString(),
           updated_at: new Date().toISOString(),
         },
