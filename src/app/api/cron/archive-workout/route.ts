@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServiceClient } from '@/lib/supabase-server';
-import { getCurrentVotingWednesday } from '@/lib/timezone';
+import { getPreviousVotingWednesday } from '@/lib/timezone';
 
 /**
  * GET handler: Archive the winning workout and reset for new week
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = createServiceClient();
-  const wednesdayDate = getCurrentVotingWednesday();
+  const wednesdayDate = getPreviousVotingWednesday();
 
   try {
     // Fetch all proposals for this week with their vote counts

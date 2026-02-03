@@ -133,6 +133,87 @@ export function getCurrentVotingWednesday(): string {
 }
 
 /**
+ * Get the Wednesday date for the voting period that just ended
+ *
+ * Used by the archive cron job which runs at 6:00 AM Wednesday Brisbane time.
+ * At that moment, getCurrentVotingWednesday() returns NEXT Wednesday,
+ * but we need to archive the period that just ended (today's Wednesday).
+ *
+ * @returns YYYY-MM-DD format string for the Wednesday that just ended
+ */
+export function getPreviousVotingWednesday(): string {
+  const now = new Date();
+
+  // Get current time in Brisbane
+  const brisbaneStr = now.toLocaleString('en-US', {
+    timeZone: BRISBANE_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+
+  // Parse Brisbane time components
+  const match = brisbaneStr.match(/(\d+)\/(\d+)\/(\d+),\s*(\d+):(\d+)/);
+  if (!match) {
+    throw new Error('Failed to parse Brisbane time');
+  }
+
+  const [, month, day, year, hour] = match;
+  const brisbaneDate = new Date(
+    parseInt(year!),
+    parseInt(month!) - 1,
+    parseInt(day!),
+    parseInt(hour!)
+  );
+
+  const dayOfWeek = brisbaneDate.getDay(); // 0=Sun, 1=Mon, ..., 3=Wed, 4=Thu
+  const currentHour = parseInt(hour!);
+
+  // Calculate days to the most recent Wednesday that ended its voting period
+  let daysToLastWed: number;
+
+  if (dayOfWeek === 3) {
+    // Wednesday
+    if (currentHour >= 6) {
+      // 6am or later: today's period just ended
+      daysToLastWed = 0;
+    } else {
+      // Before 6am: today hasn't ended yet, go back to last Wednesday
+      daysToLastWed = -7;
+    }
+  } else if (dayOfWeek === 4) {
+    // Thursday
+    if (currentHour >= 6) {
+      // New period started, yesterday (Wed) just ended
+      daysToLastWed = -1;
+    } else {
+      // Before 6am Thu: still in Wed's period, last ended Wed was a week ago
+      daysToLastWed = -8;
+    }
+  } else if (dayOfWeek > 4) {
+    // Friday (5), Saturday (6) - last Wed was (dayOfWeek - 3) days ago
+    daysToLastWed = -(dayOfWeek - 3);
+  } else {
+    // Sunday (0), Monday (1), Tuesday (2) - last Wed was (dayOfWeek + 4) days ago
+    daysToLastWed = -(dayOfWeek + 4);
+  }
+
+  // Calculate target Wednesday
+  const targetDate = new Date(brisbaneDate);
+  targetDate.setDate(targetDate.getDate() + daysToLastWed);
+
+  // Format as YYYY-MM-DD
+  const y = targetDate.getFullYear();
+  const m = String(targetDate.getMonth() + 1).padStart(2, '0');
+  const d = String(targetDate.getDate()).padStart(2, '0');
+
+  return `${y}-${m}-${d}`;
+}
+
+/**
  * Format a Wednesday date for display
  * @param dateStr - YYYY-MM-DD format date string
  * @returns Formatted string like "Wednesday, Feb 4th"
