@@ -252,7 +252,7 @@ export function buildAuthorizationUrl(state: string): string {
     client_id: process.env.STRAVA_CLIENT_ID!,
     redirect_uri: process.env.STRAVA_REDIRECT_URI!,
     response_type: 'code',
-    scope: 'activity:read_all',
+    scope: 'activity:read',
     state,
   });
 
