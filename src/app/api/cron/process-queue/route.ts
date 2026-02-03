@@ -87,21 +87,20 @@ export async function GET(request: NextRequest) {
         }
 
         // Skip if activity date < member joined_at
-        // TODO: Re-enable after manual sync for late joiners
-        // const activityDate = new Date(activity.start_date);
-        // const joinedAt = new Date(member.joined_at);
-        // if (activityDate < joinedAt) {
-        //   await supabase
-        //     .from('webhook_queue')
-        //     .update({
-        //       status: 'completed',
-        //       processed_at: new Date().toISOString(),
-        //       error_message: 'Skipped: activity before join date',
-        //     })
-        //     .eq('id', item.id);
-        //   processed++;
-        //   continue;
-        // }
+        const activityDate = new Date(activity.start_date);
+        const joinedAt = new Date(member.joined_at);
+        if (activityDate < joinedAt) {
+          await supabase
+            .from('webhook_queue')
+            .update({
+              status: 'completed',
+              processed_at: new Date().toISOString(),
+              error_message: 'Skipped: activity before join date',
+            })
+            .eq('id', item.id);
+          processed++;
+          continue;
+        }
 
         // Fetch activity streams
         const streams = await fetchActivityStreams(item.strava_activity_id, accessToken);
