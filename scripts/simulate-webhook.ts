@@ -5,17 +5,17 @@
  * Manually queue Strava activities for processing when webhooks are missed.
  *
  * Usage:
- *   # List recent activities for an athlete
- *   pnpm tsx scripts/simulate-webhook.ts --athlete 35797774 --list
- *   pnpm tsx scripts/simulate-webhook.ts --athlete 35797774 --list --remote
+ *   # List recent activities for an athlete (local database)
+ *   TOKEN_ENCRYPTION_KEY="<key>" pnpm tsx scripts/simulate-webhook.ts --athlete 35797774 --list
+ *
+ *   # List recent activities (remote database - use production key from Vercel)
+ *   TOKEN_ENCRYPTION_KEY="<production-key>" pnpm tsx scripts/simulate-webhook.ts --athlete 35797774 --list --remote
  *
  *   # Queue a specific activity for processing
- *   pnpm tsx scripts/simulate-webhook.ts --activity 12345678 --athlete 35797774
- *   pnpm tsx scripts/simulate-webhook.ts --activity 12345678 --athlete 35797774 --remote
+ *   TOKEN_ENCRYPTION_KEY="<key>" pnpm tsx scripts/simulate-webhook.ts --activity 12345678 --athlete 35797774
+ *   TOKEN_ENCRYPTION_KEY="<production-key>" pnpm tsx scripts/simulate-webhook.ts --activity 12345678 --athlete 35797774 --remote
  */
 
-import dotenv from 'dotenv';
-dotenv.config({ path: '.env.local' });
 import { execSync } from 'child_process';
 import pg from 'pg';
 import { decryptToken } from '../src/lib/encryption';
@@ -78,7 +78,7 @@ function parseArgs(): Args {
 
 function printUsage(): void {
   console.log(`
-Usage: pnpm tsx scripts/simulate-webhook.ts [options]
+Usage: TOKEN_ENCRYPTION_KEY="<key>" pnpm tsx scripts/simulate-webhook.ts [options]
 
 Options:
   --athlete <id>    Strava athlete ID (required)
@@ -89,13 +89,13 @@ Options:
 
 Examples:
   # List recent activities (local database)
-  pnpm tsx scripts/simulate-webhook.ts --athlete 35797774 --list
+  TOKEN_ENCRYPTION_KEY="<local-key>" pnpm tsx scripts/simulate-webhook.ts --athlete 35797774 --list
 
-  # List recent activities (remote database)
-  pnpm tsx scripts/simulate-webhook.ts --athlete 35797774 --list --remote
+  # List recent activities (remote database - use production key from Vercel)
+  TOKEN_ENCRYPTION_KEY="<production-key>" pnpm tsx scripts/simulate-webhook.ts --athlete 35797774 --list --remote
 
   # Queue an activity for processing
-  pnpm tsx scripts/simulate-webhook.ts --activity 12345678 --athlete 35797774 --remote
+  TOKEN_ENCRYPTION_KEY="<production-key>" pnpm tsx scripts/simulate-webhook.ts --activity 12345678 --athlete 35797774 --remote
 `);
 }
 
@@ -243,6 +243,22 @@ async function main(): Promise<void> {
   if (!args.list && !args.activity) {
     console.error('Error: Either --list or --activity is required');
     printUsage();
+    process.exit(1);
+  }
+
+  // Require explicit TOKEN_ENCRYPTION_KEY for decrypting stored tokens
+  if (!process.env.TOKEN_ENCRYPTION_KEY) {
+    console.error('Error: TOKEN_ENCRYPTION_KEY environment variable is required');
+    console.error('');
+    console.error('Usage:');
+    console.error(
+      '  TOKEN_ENCRYPTION_KEY="<key>" pnpm tsx scripts/simulate-webhook.ts --athlete <id> --list'
+    );
+    console.error('');
+    console.error('For remote database, use the PRODUCTION key from Vercel:');
+    console.error(
+      '  TOKEN_ENCRYPTION_KEY="<production-key>" pnpm tsx scripts/simulate-webhook.ts --athlete <id> --list --remote'
+    );
     process.exit(1);
   }
 

@@ -10,15 +10,18 @@ Manually queue Strava activities for processing when webhooks are missed (e.g., 
 
 - Supabase CLI installed and logged in (`pnpm supabase login`)
 - Project linked to remote Supabase (`pnpm supabase link`)
+- `TOKEN_ENCRYPTION_KEY` - the encryption key used to decrypt stored Strava tokens
+  - For local database: use your local key from `.env.local`
+  - For remote database: use the production key from Vercel environment variables
 
 ### Usage
 
 ```bash
 # List recent activities for an athlete
-pnpm tsx scripts/simulate-webhook.ts --athlete <strava_athlete_id> --list [--remote]
+TOKEN_ENCRYPTION_KEY="<key>" pnpm tsx scripts/simulate-webhook.ts --athlete <strava_athlete_id> --list [--remote]
 
 # Queue a specific activity for processing
-pnpm tsx scripts/simulate-webhook.ts --activity <strava_activity_id> --athlete <strava_athlete_id> [--remote]
+TOKEN_ENCRYPTION_KEY="<key>" pnpm tsx scripts/simulate-webhook.ts --activity <strava_activity_id> --athlete <strava_athlete_id> [--remote]
 ```
 
 ### Options
@@ -36,7 +39,7 @@ pnpm tsx scripts/simulate-webhook.ts --activity <strava_activity_id> --athlete <
 **List a member's recent activities (remote database):**
 
 ```bash
-pnpm tsx scripts/simulate-webhook.ts --athlete 35797774 --list --remote
+TOKEN_ENCRYPTION_KEY="<production-key>" pnpm tsx scripts/simulate-webhook.ts --athlete 35797774 --list --remote
 ```
 
 Output:
@@ -52,7 +55,7 @@ ID           | Date                | Type | Distance   | Time    | Name
 **Queue an activity for processing:**
 
 ```bash
-pnpm tsx scripts/simulate-webhook.ts --activity 17231168950 --athlete 35797774 --remote
+TOKEN_ENCRYPTION_KEY="<production-key>" pnpm tsx scripts/simulate-webhook.ts --activity 17231168950 --athlete 35797774 --remote
 ```
 
 The activity will be added to the `webhook_queue` table with status `pending` and processed by the next cron run (every minute on Vercel).
