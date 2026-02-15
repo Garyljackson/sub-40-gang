@@ -21,6 +21,7 @@ export interface FeedAchievement {
   id: string;
   milestone: MilestoneKey;
   timeSeconds: number;
+  previousTimeSeconds?: number;
   achievedAt: string;
   stravaActivityId: string;
   member: FeedMember;

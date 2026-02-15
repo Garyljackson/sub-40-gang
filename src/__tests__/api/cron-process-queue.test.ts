@@ -163,7 +163,8 @@ describe('GET /api/cron/process-queue', () => {
       });
       mockProcessActivity.mockResolvedValueOnce({
         newAchievements: [{ milestone: '1km' }],
-        processedActivity: {},
+        newImprovements: [],
+        activityProcessed: true,
       });
 
       const request = createRequest(validAuthHeader);

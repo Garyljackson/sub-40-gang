@@ -38,8 +38,15 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Failed to fetch achievements' }, { status: 500 });
   }
 
-  // Build milestone list with achievement data
-  const achievementMap = new Map(achievements?.map((a) => [a.milestone, a]) || []);
+  // Build map keeping only the best (lowest) time per milestone
+  type AchievementRow = NonNullable<typeof achievements>[number];
+  const achievementMap = new Map<string, AchievementRow>();
+  for (const a of achievements ?? []) {
+    const existing = achievementMap.get(a.milestone);
+    if (!existing || a.time_seconds < existing.time_seconds) {
+      achievementMap.set(a.milestone, a);
+    }
+  }
 
   const milestones: ProfileMilestone[] = MILESTONE_KEYS.map((key) => {
     const milestoneData = MILESTONES[key];
@@ -69,7 +76,7 @@ export async function GET(request: Request) {
     },
     season,
     milestones,
-    totalAchieved: achievements?.length || 0,
+    totalAchieved: achievementMap.size,
   };
 
   return NextResponse.json(response);
