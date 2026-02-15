@@ -55,10 +55,14 @@ export async function GET(request: Request) {
     if (!memberAchievements.has(achievement.member_id)) {
       memberAchievements.set(achievement.member_id, new Map());
     }
-    memberAchievements.get(achievement.member_id)!.set(achievement.milestone, {
-      achieved: true,
-      timeSeconds: achievement.time_seconds,
-    });
+    const milestoneMap = memberAchievements.get(achievement.member_id)!;
+    const existing = milestoneMap.get(achievement.milestone);
+    if (!existing || achievement.time_seconds < existing.timeSeconds) {
+      milestoneMap.set(achievement.milestone, {
+        achieved: true,
+        timeSeconds: achievement.time_seconds,
+      });
+    }
   }
 
   // Build leaderboard entries

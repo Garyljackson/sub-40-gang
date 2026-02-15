@@ -28,6 +28,7 @@ export async function GET(request: Request) {
       id,
       milestone,
       time_seconds,
+      previous_time_seconds,
       achieved_at,
       strava_activity_id,
       member:members!inner (
@@ -111,6 +112,9 @@ export async function GET(request: Request) {
       id: achievement.id,
       milestone: achievement.milestone,
       timeSeconds: achievement.time_seconds,
+      ...(achievement.previous_time_seconds != null && {
+        previousTimeSeconds: achievement.previous_time_seconds,
+      }),
       achievedAt: achievement.achieved_at,
       stravaActivityId: achievement.strava_activity_id,
       member: {

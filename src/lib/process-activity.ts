@@ -10,8 +10,16 @@ export interface ProcessedMilestone {
   distanceMeters: number;
 }
 
+export interface ProcessedImprovement {
+  milestone: MilestoneKey;
+  timeSeconds: number;
+  previousTimeSeconds: number;
+  distanceMeters: number;
+}
+
 export interface ProcessActivityResult {
   newAchievements: ProcessedMilestone[];
+  newImprovements: ProcessedImprovement[];
   activityProcessed: boolean;
 }
 
@@ -20,7 +28,7 @@ export interface ProcessActivityResult {
  * @param memberId - The member's database ID
  * @param activity - The Strava activity details
  * @param streams - The time and distance streams from Strava
- * @returns Array of newly unlocked milestones
+ * @returns Array of newly unlocked milestones and improvements
  */
 export async function processActivity(
   memberId: string,
@@ -33,10 +41,10 @@ export async function processActivity(
   const activityDate = new Date(activity.start_date);
   const season = getSeasonForDate(activityDate);
 
-  // Fetch existing achievements for this member/season
+  // Fetch existing achievements for this member/season (including time for improvement comparison)
   const { data: existingAchievements, error: fetchError } = await supabase
     .from('achievements')
-    .select('milestone')
+    .select('milestone, time_seconds')
     .eq('member_id', memberId)
     .eq('season', season);
 
@@ -44,30 +52,46 @@ export async function processActivity(
     throw new Error(`Failed to fetch existing achievements: ${fetchError.message}`);
   }
 
-  const achievedMilestones = new Set(existingAchievements?.map((a) => a.milestone) ?? []);
-
-  // Find milestones that haven't been achieved yet
-  const unachievedMilestones = MILESTONE_KEYS.filter((key) => !achievedMilestones.has(key));
-
-  if (unachievedMilestones.length === 0) {
-    // All milestones achieved for this season
-    await upsertProcessedActivity(memberId, activity, []);
-    return { newAchievements: [], activityProcessed: true };
+  // Build a map of best (lowest) time per milestone
+  const bestTimeByMilestone = new Map<MilestoneKey, number>();
+  for (const a of existingAchievements ?? []) {
+    const existing = bestTimeByMilestone.get(a.milestone);
+    if (existing === undefined || a.time_seconds < existing) {
+      bestTimeByMilestone.set(a.milestone, a.time_seconds);
+    }
   }
 
-  // Calculate best efforts for unachieved milestones
   const newAchievements: ProcessedMilestone[] = [];
+  const newImprovements: ProcessedImprovement[] = [];
 
-  for (const milestoneKey of unachievedMilestones) {
+  for (const milestoneKey of MILESTONE_KEYS) {
     const milestone = MILESTONES[milestoneKey];
     const bestEffort = findBestEffort(streams.time, streams.distance, milestone.distanceMeters);
 
-    if (bestEffort && beatsMilestone(milestoneKey, bestEffort.timeSeconds)) {
-      newAchievements.push({
-        milestone: milestoneKey,
-        timeSeconds: bestEffort.timeSeconds,
-        distanceMeters: bestEffort.distanceMeters,
-      });
+    if (!bestEffort) continue;
+
+    const existingBestTime = bestTimeByMilestone.get(milestoneKey);
+
+    if (existingBestTime === undefined) {
+      // Not yet achieved — check if this run beats the target
+      if (beatsMilestone(milestoneKey, bestEffort.timeSeconds)) {
+        newAchievements.push({
+          milestone: milestoneKey,
+          timeSeconds: bestEffort.timeSeconds,
+          distanceMeters: bestEffort.distanceMeters,
+        });
+      }
+    } else {
+      // Already achieved — check if this run is strictly faster
+      const roundedTime = Math.round(bestEffort.timeSeconds);
+      if (roundedTime < existingBestTime) {
+        newImprovements.push({
+          milestone: milestoneKey,
+          timeSeconds: bestEffort.timeSeconds,
+          previousTimeSeconds: existingBestTime,
+          distanceMeters: bestEffort.distanceMeters,
+        });
+      }
     }
   }
 
@@ -90,14 +114,34 @@ export async function processActivity(
     }
   }
 
-  // Upsert to processed_activities table for "last synced run" visibility
-  await upsertProcessedActivity(
-    memberId,
-    activity,
-    newAchievements.map((a) => a.milestone)
-  );
+  // Insert improvements (new rows with previous_time_seconds set)
+  if (newImprovements.length > 0) {
+    const improvementInserts = newImprovements.map((improvement) => ({
+      member_id: memberId,
+      milestone: improvement.milestone,
+      season,
+      strava_activity_id: String(activity.id),
+      achieved_at: activity.start_date,
+      time_seconds: Math.round(improvement.timeSeconds),
+      distance: improvement.distanceMeters,
+      previous_time_seconds: improvement.previousTimeSeconds,
+    }));
 
-  return { newAchievements, activityProcessed: true };
+    const { error: insertError } = await supabase.from('achievements').insert(improvementInserts);
+
+    if (insertError) {
+      throw new Error(`Failed to insert improvements: ${insertError.message}`);
+    }
+  }
+
+  // Upsert to processed_activities table for "last synced run" visibility
+  const allMilestones = [
+    ...newAchievements.map((a) => a.milestone),
+    ...newImprovements.map((i) => i.milestone),
+  ];
+  await upsertProcessedActivity(memberId, activity, allMilestones);
+
+  return { newAchievements, newImprovements, activityProcessed: true };
 }
 
 async function upsertProcessedActivity(

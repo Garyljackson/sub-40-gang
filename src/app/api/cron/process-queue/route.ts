@@ -115,8 +115,17 @@ export async function GET(request: NextRequest) {
             status: 'completed',
             processed_at: new Date().toISOString(),
             error_message:
-              result.newAchievements.length > 0
-                ? `Unlocked: ${result.newAchievements.map((a) => a.milestone).join(', ')}`
+              result.newAchievements.length > 0 || result.newImprovements.length > 0
+                ? [
+                    result.newAchievements.length > 0
+                      ? `Unlocked: ${result.newAchievements.map((a) => a.milestone).join(', ')}`
+                      : null,
+                    result.newImprovements.length > 0
+                      ? `Improved: ${result.newImprovements.map((i) => i.milestone).join(', ')}`
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join('; ')
                 : null,
           })
           .eq('id', item.id);

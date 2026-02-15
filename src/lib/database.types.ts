@@ -36,6 +36,7 @@ export type Database = {
           id: string;
           member_id: string;
           milestone: Database['public']['Enums']['milestone_type'];
+          previous_time_seconds: number | null;
           season: number;
           strava_activity_id: string;
           time_seconds: number;
@@ -47,6 +48,7 @@ export type Database = {
           id?: string;
           member_id: string;
           milestone: Database['public']['Enums']['milestone_type'];
+          previous_time_seconds?: number | null;
           season: number;
           strava_activity_id: string;
           time_seconds: number;
@@ -58,6 +60,7 @@ export type Database = {
           id?: string;
           member_id?: string;
           milestone?: Database['public']['Enums']['milestone_type'];
+          previous_time_seconds?: number | null;
           season?: number;
           strava_activity_id?: string;
           time_seconds?: number;

@@ -42,12 +42,24 @@ export function AchievementCard({ achievement, onReactionUpdate }: AchievementCa
   const emoji = MILESTONE_EMOJIS[achievement.milestone];
   const achievedTime = achievement.timeSeconds;
   const is10km = achievement.milestone === '10km';
+  const isImprovement = achievement.previousTimeSeconds != null;
 
   // Calculate actual pace
   const actualPace = formatPace(achievedTime, milestoneData.distanceMeters);
 
+  // Calculate time saved for improvements
+  const timeSaved = isImprovement ? achievement.previousTimeSeconds! - achievedTime : 0;
+
   return (
-    <Card className={is10km ? 'celebration-pulse ring-2 ring-amber-300/50' : ''}>
+    <Card
+      className={
+        is10km
+          ? 'celebration-pulse ring-2 ring-amber-300/50'
+          : isImprovement
+            ? 'ring-2 ring-emerald-300/50'
+            : ''
+      }
+    >
       <CardContent className="space-y-3">
         {/* Header */}
         <div className="flex items-center gap-3">
@@ -63,7 +75,9 @@ export function AchievementCard({ achievement, onReactionUpdate }: AchievementCa
                 {formatRelativeTime(achievement.achievedAt)}
               </span>
             </div>
-            <p className="text-sm text-gray-500">Unlocked a new milestone!</p>
+            <p className="text-sm text-gray-500">
+              {isImprovement ? 'New personal best!' : 'Unlocked a new milestone!'}
+            </p>
           </div>
         </div>
 
@@ -72,7 +86,9 @@ export function AchievementCard({ achievement, onReactionUpdate }: AchievementCa
           className={`rounded-xl p-3 ${
             is10km
               ? 'bg-gradient-to-br from-amber-200/60 via-orange-200/40 to-amber-200/60'
-              : 'bg-gradient-to-br from-gray-100 to-slate-100'
+              : isImprovement
+                ? 'bg-gradient-to-br from-emerald-100/60 to-green-100/60'
+                : 'bg-gradient-to-br from-gray-100 to-slate-100'
           }`}
         >
           <div className="flex items-center gap-3">
@@ -80,7 +96,9 @@ export function AchievementCard({ achievement, onReactionUpdate }: AchievementCa
               className={`flex h-14 w-14 items-center justify-center rounded-xl text-3xl ${
                 is10km
                   ? 'bg-gradient-to-br from-yellow-400 to-orange-500 shadow-lg'
-                  : 'border border-gray-100 bg-white shadow-sm'
+                  : isImprovement
+                    ? 'border border-emerald-200 bg-white shadow-sm'
+                    : 'border border-gray-100 bg-white shadow-sm'
               }`}
             >
               {emoji}
@@ -92,12 +110,20 @@ export function AchievementCard({ achievement, onReactionUpdate }: AchievementCa
               <p className="text-xl font-bold text-gray-900 tabular-nums">
                 {formatTime(achievedTime)}
               </p>
-              <p className="text-xs text-gray-500">{actualPace} /km</p>
+              <div className="flex items-center gap-2">
+                <p className="text-xs text-gray-500">{actualPace} /km</p>
+                {isImprovement && (
+                  <p className="text-xs font-medium text-emerald-600">
+                    {formatTime(timeSaved)} faster (was{' '}
+                    {formatTime(achievement.previousTimeSeconds!)})
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Special celebration for 10km */}
-          {is10km && (
+          {is10km && !isImprovement && (
             <div className="mt-2 border-t border-amber-300/30 pt-2 text-center">
               <p className="text-brand-primary text-sm font-semibold">🎉 S40G GOAL ACHIEVED! 🎉</p>
             </div>

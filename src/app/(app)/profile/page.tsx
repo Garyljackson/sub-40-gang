@@ -33,7 +33,14 @@ async function getProfileData(memberId: string) {
     throw new Error('Failed to fetch member');
   }
 
-  const achievementMap = new Map(achievementsResult.data?.map((a) => [a.milestone, a]) || []);
+  // Build map keeping only the best (lowest) time per milestone
+  const achievementMap = new Map<string, NonNullable<typeof achievementsResult.data>[number]>();
+  for (const a of achievementsResult.data ?? []) {
+    const existing = achievementMap.get(a.milestone);
+    if (!existing || a.time_seconds < existing.time_seconds) {
+      achievementMap.set(a.milestone, a);
+    }
+  }
 
   const milestones: ProfileMilestone[] = MILESTONE_KEYS.map((key) => {
     const milestoneData = MILESTONES[key];
@@ -57,7 +64,7 @@ async function getProfileData(memberId: string) {
   return {
     member: memberResult.data,
     milestones,
-    totalAchieved: achievementsResult.data?.length || 0,
+    totalAchieved: achievementMap.size,
     hasAchieved10km: achievementMap.has('10km'),
     season,
   };
