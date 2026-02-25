@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { fetchWithAuth } from '@/lib/fetch-with-auth';
 import type { FeedAchievement, FeedReaction } from '@/lib/types';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import type { Tables } from '@/lib/supabase';
@@ -45,7 +46,7 @@ export function useFeedSubscription({
   const fetchAchievement = useCallback(
     async (achievementId: string): Promise<FeedAchievement | null> => {
       try {
-        const response = await fetch(`/api/achievements/${achievementId}`);
+        const response = await fetchWithAuth(`/api/achievements/${achievementId}`);
         if (response.ok) {
           const data = await response.json();
           return data.achievement;

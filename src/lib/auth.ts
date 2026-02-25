@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 
 const SESSION_COOKIE_NAME = 's40g_session';
 const SESSION_EXPIRY_DAYS = 7;
+const SESSION_REFRESH_THRESHOLD_MS = (SESSION_EXPIRY_DAYS / 2) * 24 * 60 * 60 * 1000;
 
 export interface SessionPayload {
   memberId: string;
@@ -74,6 +75,44 @@ export async function getSession(): Promise<SessionPayload | null> {
   } catch {
     // Token is invalid or expired
     return null;
+  }
+}
+
+/**
+ * Refresh the session cookie if it's past the halfway point of its lifetime.
+ * This implements a sliding window so active users stay logged in.
+ */
+export async function refreshSessionIfNeeded(): Promise<void> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+
+  if (!token) return;
+
+  try {
+    const secret = getJwtSecret();
+    const { payload } = await jwtVerify(token, secret);
+
+    const issuedAt = payload.iat;
+    if (typeof issuedAt !== 'number') return;
+
+    const age = Math.floor(Date.now() / 1000) - issuedAt;
+    if (age * 1000 < SESSION_REFRESH_THRESHOLD_MS) return;
+
+    if (
+      typeof payload.memberId !== 'string' ||
+      typeof payload.stravaAthleteId !== 'string' ||
+      typeof payload.name !== 'string'
+    ) {
+      return;
+    }
+
+    await createSession({
+      memberId: payload.memberId,
+      stravaAthleteId: payload.stravaAthleteId,
+      name: payload.name,
+    });
+  } catch {
+    // Token invalid — nothing to refresh
   }
 }
 
