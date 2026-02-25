@@ -7,6 +7,7 @@ import type {
   ArchivedWorkoutResponse,
   Segment,
 } from '@/lib/workout-types';
+import { fetchWithAuth } from '@/lib/fetch-with-auth';
 import { ProposalCard } from './proposal-card';
 import { ArchiveCard } from './archive-card';
 import { WorkoutBuilder } from './workout-builder';
@@ -32,7 +33,7 @@ export function WorkoutsContent({ initialData }: WorkoutsContentProps) {
     if (archivesLoaded) return;
 
     try {
-      const res = await fetch('/api/workouts/archive');
+      const res = await fetchWithAuth('/api/workouts/archive');
       if (!res.ok) throw new Error('Failed to fetch archives');
       const data = await res.json();
       setArchives(data.archives);
@@ -68,7 +69,7 @@ export function WorkoutsContent({ initialData }: WorkoutsContentProps) {
       setCurrentVoteId(null);
 
       try {
-        const res = await fetch('/api/workouts/votes', { method: 'DELETE' });
+        const res = await fetchWithAuth('/api/workouts/votes', { method: 'DELETE' });
         if (!res.ok) throw new Error('Failed to unvote');
       } catch (error) {
         console.error('Failed to unvote:', error);
@@ -94,7 +95,7 @@ export function WorkoutsContent({ initialData }: WorkoutsContentProps) {
       setCurrentVoteId(proposalId);
 
       try {
-        const res = await fetch('/api/workouts/votes', {
+        const res = await fetchWithAuth('/api/workouts/votes', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ proposalId }),
@@ -113,7 +114,7 @@ export function WorkoutsContent({ initialData }: WorkoutsContentProps) {
   // Refresh proposals from server
   const refreshProposals = async () => {
     try {
-      const res = await fetch('/api/workouts/proposals');
+      const res = await fetchWithAuth('/api/workouts/proposals');
       if (!res.ok) throw new Error('Failed to fetch proposals');
       const data: ProposalsResponse = await res.json();
       setProposals(data.proposals);
@@ -132,7 +133,7 @@ export function WorkoutsContent({ initialData }: WorkoutsContentProps) {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch('/api/workouts/proposals', {
+      const res = await fetchWithAuth('/api/workouts/proposals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -165,7 +166,7 @@ export function WorkoutsContent({ initialData }: WorkoutsContentProps) {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch(`/api/workouts/proposals/${editingProposal.id}`, {
+      const res = await fetchWithAuth(`/api/workouts/proposals/${editingProposal.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -193,7 +194,7 @@ export function WorkoutsContent({ initialData }: WorkoutsContentProps) {
     if (!confirm('Are you sure you want to delete this proposal?')) return;
 
     try {
-      const res = await fetch(`/api/workouts/proposals/${proposalId}`, {
+      const res = await fetchWithAuth(`/api/workouts/proposals/${proposalId}`, {
         method: 'DELETE',
       });
 

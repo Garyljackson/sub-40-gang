@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSession, type SessionPayload } from './auth';
+import { getSession, refreshSessionIfNeeded, type SessionPayload } from './auth';
 
 export type AuthenticatedHandler<T = unknown> = (
   request: Request,
@@ -17,6 +17,9 @@ export function withAuth<T = unknown>(handler: AuthenticatedHandler<T>) {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // Extend session for active users (sliding window)
+    await refreshSessionIfNeeded();
 
     return handler(request, session);
   };

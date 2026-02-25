@@ -2,6 +2,7 @@
 
 import { useState, useOptimistic, startTransition } from 'react';
 import { ALLOWED_EMOJIS, type FeedReaction, type AllowedEmoji } from '@/lib/types';
+import { fetchWithAuth } from '@/lib/fetch-with-auth';
 
 interface ReactionBarProps {
   achievementId: string;
@@ -48,7 +49,7 @@ export function ReactionBar({ achievementId, reactions, onUpdate }: ReactionBarP
     setShowPicker(false);
 
     try {
-      const response = await fetch('/api/reactions', {
+      const response = await fetchWithAuth('/api/reactions', {
         method: hasReacted ? 'DELETE' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ achievementId, emoji }),

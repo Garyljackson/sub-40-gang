@@ -5,6 +5,7 @@ import { AchievementCard } from './achievement-card';
 import { Button } from './ui/button';
 import { EmptyState } from './ui/empty-state';
 import { useFeedSubscription } from '@/hooks/use-feed-subscription';
+import { fetchWithAuth } from '@/lib/fetch-with-auth';
 import type { FeedAchievement, FeedReaction, FeedResponse } from '@/lib/types';
 
 interface FeedListProps {
@@ -24,7 +25,7 @@ export function FeedList({ initialData, currentMemberId, season }: FeedListProps
 
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/feed?cursor=${encodeURIComponent(cursor)}`);
+      const response = await fetchWithAuth(`/api/feed?cursor=${encodeURIComponent(cursor)}`);
       if (response.ok) {
         const data: FeedResponse = await response.json();
         setAchievements((prev) => [...prev, ...data.achievements]);
