@@ -75,7 +75,9 @@ async function getRecentActivity(memberId: string): Promise<RecentActivity | nul
 
   const { data: activity, error } = await supabase
     .from('processed_activities')
-    .select('*')
+    .select(
+      'id, strava_activity_id, activity_name, activity_date, distance_meters, moving_time_seconds, elapsed_time_seconds, pace_seconds_per_km, milestones_unlocked'
+    )
     .eq('member_id', memberId)
     .order('activity_date', { ascending: false })
     .limit(1)
@@ -90,6 +92,7 @@ async function getRecentActivity(memberId: string): Promise<RecentActivity | nul
     name: activity.activity_name,
     distanceMeters: activity.distance_meters,
     movingTimeSeconds: activity.moving_time_seconds,
+    elapsedTimeSeconds: activity.elapsed_time_seconds ?? null,
     paceSecondsPerKm: activity.pace_seconds_per_km,
     activityDate: activity.activity_date,
     stravaActivityId: activity.strava_activity_id,

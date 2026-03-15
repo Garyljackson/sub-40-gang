@@ -163,6 +163,7 @@ async function upsertProcessedActivity(
       activity_date: activity.start_date,
       distance_meters: activity.distance,
       moving_time_seconds: activity.moving_time,
+      elapsed_time_seconds: activity.elapsed_time,
       pace_seconds_per_km: Math.round(paceSecondsPerKm),
       milestones_unlocked: milestonesUnlocked.length > 0 ? milestonesUnlocked : null,
       processed_at: new Date().toISOString(),

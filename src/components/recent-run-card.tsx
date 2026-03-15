@@ -41,7 +41,7 @@ export function RecentRunCard({ activity }: RecentRunCardProps) {
       <CardContent className="space-y-4">
         <h3 className="font-semibold text-gray-900">{activity.name}</h3>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-xs text-gray-500">Distance</p>
             <p className="text-lg font-bold text-gray-900 tabular-nums">
@@ -56,11 +56,19 @@ export function RecentRunCard({ activity }: RecentRunCardProps) {
             </p>
           </div>
           <div>
-            <p className="text-xs text-gray-500">Time</p>
+            <p className="text-xs text-gray-500">Moving Time</p>
             <p className="text-lg font-bold text-gray-900 tabular-nums">
               {formatTime(activity.movingTimeSeconds)}
             </p>
           </div>
+          {activity.elapsedTimeSeconds !== null && (
+            <div>
+              <p className="text-xs text-gray-500">Total Time</p>
+              <p className="text-lg font-bold text-gray-900 tabular-nums">
+                {formatTime(activity.elapsedTimeSeconds)}
+              </p>
+            </div>
+          )}
         </div>
 
         {activity.milestonesUnlocked.length > 0 && (

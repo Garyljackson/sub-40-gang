@@ -32,6 +32,7 @@ export async function GET() {
           name: activity.activity_name,
           distanceMeters: activity.distance_meters,
           movingTimeSeconds: activity.moving_time_seconds,
+          elapsedTimeSeconds: activity.elapsed_time_seconds ?? null,
           paceSecondsPerKm: activity.pace_seconds_per_km,
           activityDate: activity.activity_date,
           stravaActivityId: activity.strava_activity_id,
