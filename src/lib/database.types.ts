@@ -166,6 +166,7 @@ export type Database = {
           activity_date: string;
           activity_name: string;
           distance_meters: number;
+          elapsed_time_seconds: number | null;
           id: string;
           member_id: string;
           milestones_unlocked: string[] | null;
@@ -178,6 +179,7 @@ export type Database = {
           activity_date: string;
           activity_name: string;
           distance_meters: number;
+          elapsed_time_seconds?: number | null;
           id?: string;
           member_id: string;
           milestones_unlocked?: string[] | null;
@@ -190,6 +192,7 @@ export type Database = {
           activity_date?: string;
           activity_name?: string;
           distance_meters?: number;
+          elapsed_time_seconds?: number | null;
           id?: string;
           member_id?: string;
           milestones_unlocked?: string[] | null;

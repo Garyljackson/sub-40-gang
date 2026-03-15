@@ -85,6 +85,7 @@ export interface RecentActivity {
   name: string;
   distanceMeters: number;
   movingTimeSeconds: number;
+  elapsedTimeSeconds: number | null;
   paceSecondsPerKm: number;
   activityDate: string;
   stravaActivityId: string;
