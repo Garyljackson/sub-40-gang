@@ -38,6 +38,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com', // Google profile photos
       },
+      {
+        protocol: 'https',
+        hostname: 'platform-lookaside.fbsbx.com', // Facebook profile photos via Strava
+      },
     ],
   },
   async headers() {
