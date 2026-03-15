@@ -1,4 +1,7 @@
+'use client';
+
 import Image from 'next/image';
+import { useState } from 'react';
 
 interface AvatarProps {
   src: string | null;
@@ -25,8 +28,9 @@ function getInitials(name: string): string {
 
 export function Avatar({ src, name, size = 'md', className = '' }: AvatarProps) {
   const sizeClass = sizeClasses[size];
+  const [imgError, setImgError] = useState(false);
 
-  if (src) {
+  if (src && !imgError) {
     return (
       <div className={`relative overflow-hidden rounded-full ${sizeClass} ${className}`}>
         <Image
@@ -35,6 +39,7 @@ export function Avatar({ src, name, size = 'md', className = '' }: AvatarProps) 
           fill
           className="object-cover"
           sizes={size === 'xl' ? '80px' : size === 'lg' ? '64px' : size === 'md' ? '40px' : '32px'}
+          onError={() => setImgError(true)}
         />
       </div>
     );

@@ -53,7 +53,10 @@ export async function GET(request: NextRequest) {
         {
           strava_athlete_id: String(athlete.id),
           name: `${athlete.firstname} ${athlete.lastname}`.trim(),
-          profile_photo_url: athlete.profile || athlete.profile_medium || null,
+          profile_photo_url: (() => {
+            const raw = athlete.profile || athlete.profile_medium || null;
+            return raw?.startsWith('avatar/') ? null : raw;
+          })(),
           strava_access_token: encryptToken(tokens.access_token),
           strava_refresh_token: encryptToken(tokens.refresh_token),
           token_expires_at: new Date(tokens.expires_at * 1000).toISOString(),
