@@ -3,6 +3,13 @@
  * Used for testing webhook processing and activity handling
  */
 
+export interface StravaBestEffort {
+  name: string;
+  distance: number;
+  moving_time: number;
+  elapsed_time: number;
+}
+
 export interface StravaActivity {
   id: number;
   name: string;
@@ -15,6 +22,7 @@ export interface StravaActivity {
   elapsed_time: number;
   total_elevation_gain: number;
   athlete: { id: number };
+  best_efforts?: StravaBestEffort[];
 }
 
 /**

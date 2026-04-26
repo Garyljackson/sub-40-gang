@@ -23,6 +23,41 @@ export interface ProcessActivityResult {
   activityProcessed: boolean;
 }
 
+type EvalResult =
+  | { kind: 'achievement'; timeSeconds: number; distanceMeters: number }
+  | {
+      kind: 'improvement';
+      timeSeconds: number;
+      previousTimeSeconds: number;
+      distanceMeters: number;
+    }
+  | { kind: 'none' };
+
+function evaluateBestEffort(
+  milestoneKey: MilestoneKey,
+  bestEffort: { timeSeconds: number; distanceMeters: number } | null,
+  existingBestTime: number | undefined
+): EvalResult {
+  if (!bestEffort) return { kind: 'none' };
+  if (existingBestTime === undefined) {
+    return beatsMilestone(milestoneKey, bestEffort.timeSeconds)
+      ? {
+          kind: 'achievement',
+          timeSeconds: bestEffort.timeSeconds,
+          distanceMeters: bestEffort.distanceMeters,
+        }
+      : { kind: 'none' };
+  }
+  return Math.round(bestEffort.timeSeconds) < existingBestTime
+    ? {
+        kind: 'improvement',
+        timeSeconds: bestEffort.timeSeconds,
+        previousTimeSeconds: existingBestTime,
+        distanceMeters: bestEffort.distanceMeters,
+      }
+    : { kind: 'none' };
+}
+
 /**
  * Process an activity and calculate achievements
  * @param memberId - The member's database ID
@@ -66,32 +101,38 @@ export async function processActivity(
 
   for (const milestoneKey of MILESTONE_KEYS) {
     const milestone = MILESTONES[milestoneKey];
-    const bestEffort = findBestEffort(streams.time, streams.distance, milestone.distanceMeters);
-
-    if (!bestEffort) continue;
-
     const existingBestTime = bestTimeByMilestone.get(milestoneKey);
 
-    if (existingBestTime === undefined) {
-      // Not yet achieved — check if this run beats the target
-      if (beatsMilestone(milestoneKey, bestEffort.timeSeconds)) {
-        newAchievements.push({
-          milestone: milestoneKey,
-          timeSeconds: bestEffort.timeSeconds,
-          distanceMeters: bestEffort.distanceMeters,
-        });
+    const streamsBE = findBestEffort(streams.time, streams.distance, milestone.distanceMeters);
+    let result = evaluateBestEffort(milestoneKey, streamsBE, existingBestTime);
+
+    // Strava streams can be truncated by retroactive auto-pause / sampling caps,
+    // causing findBestEffort to miss legitimate sub-target 1km efforts. Fall back
+    // to Strava's server-side best_efforts only when the streams path didn't award.
+    if (result.kind === 'none' && milestoneKey === '1km') {
+      const oneK = activity.best_efforts?.find((b) => b.distance === 1000);
+      if (oneK) {
+        result = evaluateBestEffort(
+          milestoneKey,
+          { timeSeconds: oneK.elapsed_time, distanceMeters: oneK.distance },
+          existingBestTime
+        );
       }
-    } else {
-      // Already achieved — check if this run is strictly faster
-      const roundedTime = Math.round(bestEffort.timeSeconds);
-      if (roundedTime < existingBestTime) {
-        newImprovements.push({
-          milestone: milestoneKey,
-          timeSeconds: bestEffort.timeSeconds,
-          previousTimeSeconds: existingBestTime,
-          distanceMeters: bestEffort.distanceMeters,
-        });
-      }
+    }
+
+    if (result.kind === 'achievement') {
+      newAchievements.push({
+        milestone: milestoneKey,
+        timeSeconds: result.timeSeconds,
+        distanceMeters: result.distanceMeters,
+      });
+    } else if (result.kind === 'improvement') {
+      newImprovements.push({
+        milestone: milestoneKey,
+        timeSeconds: result.timeSeconds,
+        previousTimeSeconds: result.previousTimeSeconds,
+        distanceMeters: result.distanceMeters,
+      });
     }
   }
 

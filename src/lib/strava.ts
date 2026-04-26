@@ -34,6 +34,13 @@ export interface StravaAthlete {
   profile_medium: string;
 }
 
+export interface StravaBestEffort {
+  name: string;
+  distance: number; // meters
+  moving_time: number; // seconds within the segment
+  elapsed_time: number; // seconds within the segment
+}
+
 export interface StravaActivity {
   id: number;
   name: string;
@@ -46,6 +53,7 @@ export interface StravaActivity {
   elapsed_time: number;
   total_elevation_gain: number;
   athlete: { id: number };
+  best_efforts?: StravaBestEffort[];
 }
 
 export interface StravaStream {
@@ -189,9 +197,10 @@ export async function fetchActivity(
   activityId: string,
   accessToken: string
 ): Promise<StravaActivity> {
-  const response = await fetch(`${STRAVA_API_BASE}/activities/${activityId}`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
+  const response = await fetch(
+    `${STRAVA_API_BASE}/activities/${activityId}?include_all_efforts=true`,
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  );
 
   if (response.status === 429) {
     const resetHeader = response.headers.get('X-RateLimit-Reset');
