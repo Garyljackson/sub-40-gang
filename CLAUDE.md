@@ -81,11 +81,15 @@ Achievements are calculated using a sliding window algorithm on Strava activity 
 Strava webhooks must respond within 2 seconds but only contain activity IDs. Processing flow:
 
 1. Webhook arrives -> immediately queue in `webhook_queue` table -> respond 200 OK
-2. Vercel Cron (every minute) -> fetch pending queue items -> process each:
+2. Postgres `AFTER INSERT` trigger on `webhook_queue` calls the Vercel queue processor via `pg_net` (async HTTP). Queue items are normally processed within seconds of arrival.
+3. Vercel Cron (daily at 15:00 UTC, see `vercel.json`) is a backstop that re-runs the processor in case the trigger missed any items.
+4. Processor steps per queue item:
    - Refresh Strava token if needed
-   - Fetch activity streams from Strava API
+   - Fetch activity details and streams from Strava API
    - Calculate achievements with sliding window algorithm
    - Insert new achievements to database
+
+Note: the trigger fires on `AFTER INSERT` only - a re-queue performed via `INSERT ... ON CONFLICT DO UPDATE` runs as an UPDATE row-action and will NOT fire the trigger. Re-queued items wait for the daily backstop cron unless the processor is invoked manually.
 
 ### Key Files
 
