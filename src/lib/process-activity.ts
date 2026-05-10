@@ -107,14 +107,17 @@ export async function processActivity(
     let result = evaluateBestEffort(milestoneKey, streamsBE, existingBestTime);
 
     // Strava streams can be truncated by retroactive auto-pause / sampling caps,
-    // causing findBestEffort to miss legitimate sub-target 1km efforts. Fall back
-    // to Strava's server-side best_efforts only when the streams path didn't award.
-    if (result.kind === 'none' && milestoneKey === '1km') {
-      const oneK = activity.best_efforts?.find((b) => b.distance === 1000);
-      if (oneK) {
+    // and mid-activity pauses inflate elapsed-time-based segment calcs. Fall back
+    // to Strava's server-side best_efforts (computed from full FIT data) when the
+    // streams path didn't award. Strava only publishes best_efforts at standard
+    // distances (1K, 5K, 10K for our milestones), so 2km and 7.5km silently skip
+    // - the .find() returns undefined.
+    if (result.kind === 'none') {
+      const be = activity.best_efforts?.find((b) => b.distance === milestone.distanceMeters);
+      if (be) {
         result = evaluateBestEffort(
           milestoneKey,
-          { timeSeconds: oneK.elapsed_time, distanceMeters: oneK.distance },
+          { timeSeconds: be.elapsed_time, distanceMeters: be.distance },
           existingBestTime
         );
       }
