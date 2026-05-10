@@ -244,10 +244,15 @@ describe('processActivity', () => {
     });
   });
 
-  describe('1km best_efforts fallback', () => {
-    const oneKBestEffort = (elapsedSeconds: number) => ({
+  describe('best_efforts fallback', () => {
+    const bestEffortAt = (distanceMeters: number, elapsedSeconds: number) => ({
       best_efforts: [
-        { name: '1K', distance: 1000, moving_time: elapsedSeconds, elapsed_time: elapsedSeconds },
+        {
+          name: `${distanceMeters / 1000}K`,
+          distance: distanceMeters,
+          moving_time: elapsedSeconds,
+          elapsed_time: elapsedSeconds,
+        },
       ],
     });
 
@@ -258,7 +263,7 @@ describe('processActivity', () => {
       // Streams: qualifying 1km at 230s
       const streams = generateStream(2000, 230);
       // best_efforts.1K reports a different (faster) time - should NOT be used
-      const activity = { ...runActivity, ...oneKBestEffort(222) };
+      const activity = { ...runActivity, ...bestEffortAt(1000, 222) };
 
       const result = await processActivity(alice.id, activity, streams);
 
@@ -273,7 +278,7 @@ describe('processActivity', () => {
 
       // Streams cover only 800m - findBestEffort returns null
       const streams = generateStream(800, 230);
-      const activity = { ...runActivity, ...oneKBestEffort(222) };
+      const activity = { ...runActivity, ...bestEffortAt(1000, 222) };
 
       const result = await processActivity(alice.id, activity, streams);
 
@@ -290,7 +295,7 @@ describe('processActivity', () => {
       // Streams: 1km at 250s (over the 240s target)
       const streams = generateStream(2000, 250);
       // best_efforts: 1K at 222s (qualifies)
-      const activity = { ...runActivity, ...oneKBestEffort(222) };
+      const activity = { ...runActivity, ...bestEffortAt(1000, 222) };
 
       const result = await processActivity(alice.id, activity, streams);
 
@@ -310,7 +315,7 @@ describe('processActivity', () => {
       // Streams: 1km at 250s (slower than existing - no improvement)
       const streams = generateStream(2000, 250);
       // best_efforts.1K: 220s (faster than existing 230s)
-      const activity = { ...runActivity, ...oneKBestEffort(220) };
+      const activity = { ...runActivity, ...bestEffortAt(1000, 220) };
 
       const result = await processActivity(alice.id, activity, streams);
 
@@ -325,7 +330,7 @@ describe('processActivity', () => {
       mockAchievementsSelect.mockResolvedValue({ data: [], error: null });
 
       const streams = generateStream(800, 230); // too short
-      const activity = { ...runActivity, ...oneKBestEffort(250) }; // over target
+      const activity = { ...runActivity, ...bestEffortAt(1000, 250) }; // over target
 
       const result = await processActivity(alice.id, activity, streams);
 
@@ -344,21 +349,132 @@ describe('processActivity', () => {
       expect(result.activityProcessed).toBe(true);
     });
 
-    it('fallback does not apply to non-1km milestones', async () => {
+    it('does not award 2km via fallback when Strava best_efforts has no matching distance', async () => {
       mockAchievementsSelect.mockResolvedValue({ data: [], error: null });
 
-      // Short, slow streams: no 1km from streams (250s @ 1km, over target),
-      // no 5km from streams (only 2km of data)
-      const streams = generateStream(2000, 250);
-      // best_efforts has a qualifying 5K but no 1K - 5km should NOT be awarded via fallback
+      // Streams cover only 1km - so no 2km segment from streams
+      const streams = generateStream(1500, 230);
+      // Realistic Strava best_efforts list: includes 1K and "2 mile" (3219m) but NO 2000m
       const activity = {
         ...runActivity,
-        best_efforts: [{ name: '5K', distance: 5000, moving_time: 1100, elapsed_time: 1100 }],
+        best_efforts: [
+          { name: '1K', distance: 1000, moving_time: 225, elapsed_time: 225 },
+          { name: '2 mile', distance: 3219, moving_time: 760, elapsed_time: 760 },
+        ],
       };
 
       const result = await processActivity(alice.id, activity, streams);
 
-      expect(result.newAchievements.find((a) => a.milestone === '5km')).toBeUndefined();
+      // 1km should still be awarded (via fallback, since streams cover 1.5km but 1km segment is OK)
+      // 2km should NOT be awarded - no streams data and no exact 2000m best_effort
+      expect(result.newAchievements.find((a) => a.milestone === '2km')).toBeUndefined();
+    });
+
+    it('falls back to best_efforts.5K when streams are truncated short of 5km', async () => {
+      mockAchievementsSelect.mockResolvedValue({ data: [], error: null });
+      mockAchievementsInsert.mockResolvedValue({ error: null });
+
+      // Streams truncated to 4900m - findBestEffort returns null for 5km
+      const streams = generateStream(4900, 230);
+      // best_efforts.5K at 1180s - qualifies (target is 1200s)
+      const activity = { ...runActivity, ...bestEffortAt(5000, 1180) };
+
+      const result = await processActivity(alice.id, activity, streams);
+
+      const fiveK = result.newAchievements.find((a) => a.milestone === '5km');
+      expect(fiveK).toBeDefined();
+      expect(fiveK!.timeSeconds).toBe(1180);
+      expect(fiveK!.distanceMeters).toBe(5000);
+    });
+
+    it('falls back to best_efforts.5K when streams 5km segment is over target due to pauses', async () => {
+      mockAchievementsSelect.mockResolvedValue({ data: [], error: null });
+      mockAchievementsInsert.mockResolvedValue({ error: null });
+
+      // Streams produce a 5km segment at 1210s (over the 1200s target)
+      const streams = generateStream(5500, 242);
+      // best_efforts.5K at 1185s (pause-free server-side calc) - qualifies
+      const activity = { ...runActivity, ...bestEffortAt(5000, 1185) };
+
+      const result = await processActivity(alice.id, activity, streams);
+
+      const fiveK = result.newAchievements.find((a) => a.milestone === '5km');
+      expect(fiveK).toBeDefined();
+      expect(fiveK!.timeSeconds).toBe(1185);
+    });
+
+    it('falls back to best_efforts.5K to record an improvement', async () => {
+      mockAchievementsSelect.mockResolvedValue({
+        data: [{ milestone: '5km', time_seconds: 1180 }],
+        error: null,
+      });
+      mockAchievementsInsert.mockResolvedValue({ error: null });
+
+      // Streams: 5km at 1210s (slower than existing - no improvement via streams)
+      const streams = generateStream(5500, 242);
+      // best_efforts.5K at 1170s (faster than existing 1180s)
+      const activity = { ...runActivity, ...bestEffortAt(5000, 1170) };
+
+      const result = await processActivity(alice.id, activity, streams);
+
+      const improvement = result.newImprovements.find((i) => i.milestone === '5km');
+      expect(improvement).toBeDefined();
+      expect(improvement!.timeSeconds).toBe(1170);
+      expect(improvement!.previousTimeSeconds).toBe(1180);
+    });
+
+    it('uses streams result for 5km when streams already produce a qualifying time', async () => {
+      mockAchievementsSelect.mockResolvedValue({ data: [], error: null });
+      mockAchievementsInsert.mockResolvedValue({ error: null });
+
+      // Clean streams: 5km segment at 1180s - qualifies on streams alone
+      const streams = generateStream(5500, 236);
+      // best_efforts.5K reports a faster time - should NOT be used since streams already won
+      const activity = { ...runActivity, ...bestEffortAt(5000, 1100) };
+
+      const result = await processActivity(alice.id, activity, streams);
+
+      const fiveK = result.newAchievements.find((a) => a.milestone === '5km');
+      expect(fiveK).toBeDefined();
+      // Streams pace is 236 s/km -> 5km segment is ~1180s, not 1100s
+      expect(Math.round(fiveK!.timeSeconds)).toBe(1180);
+    });
+
+    it('falls back to best_efforts.10K when streams are truncated short of 10km', async () => {
+      mockAchievementsSelect.mockResolvedValue({ data: [], error: null });
+      mockAchievementsInsert.mockResolvedValue({ error: null });
+
+      // Streams truncated to 9800m - findBestEffort returns null for 10km
+      const streams = generateStream(9800, 235);
+      // best_efforts.10K at 2380s - qualifies (target is 2400s)
+      const activity = { ...runActivity, ...bestEffortAt(10000, 2380) };
+
+      const result = await processActivity(alice.id, activity, streams);
+
+      const tenK = result.newAchievements.find((a) => a.milestone === '10km');
+      expect(tenK).toBeDefined();
+      expect(tenK!.timeSeconds).toBe(2380);
+      expect(tenK!.distanceMeters).toBe(10000);
+    });
+
+    it('falls back to best_efforts.10K to record an improvement', async () => {
+      mockAchievementsSelect.mockResolvedValue({
+        data: [{ milestone: '10km', time_seconds: 2380 }],
+        error: null,
+      });
+      mockAchievementsInsert.mockResolvedValue({ error: null });
+
+      // Streams: 10km segment at 2410s (slower than existing - no improvement via streams)
+      const streams = generateStream(10500, 241);
+      // best_efforts.10K at 2350s (faster than existing 2380s)
+      const activity = { ...runActivity, ...bestEffortAt(10000, 2350) };
+
+      const result = await processActivity(alice.id, activity, streams);
+
+      const improvement = result.newImprovements.find((i) => i.milestone === '10km');
+      expect(improvement).toBeDefined();
+      expect(improvement!.timeSeconds).toBe(2350);
+      expect(improvement!.previousTimeSeconds).toBe(2380);
     });
   });
 
